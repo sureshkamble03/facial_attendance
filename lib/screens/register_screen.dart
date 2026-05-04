@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:facial_attendance/bloc/auth_bloc.dart';
 import 'package:facial_attendance/bloc/auth_event.dart';
+import 'package:facial_attendance/bloc/auth_state.dart';
 import 'package:facial_attendance/core/embedding_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,7 +48,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Step 1 — decode image
     final file = File(faceImagePath!);
     final bytes = await file.readAsBytes();
+
     final img.Image? image = img.decodeImage(bytes);
+
     if (image == null) {
       debugPrint('❌ Failed to decode image');
       return;
@@ -95,49 +98,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Register")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: ListView(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: "Name"),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
-            ),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: "Password"),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-              onPressed: captureFace,
-              child: const Text("Capture Face"),
-            ),
-
-            if (faceImagePath != null)
-              Padding(
-                padding: const EdgeInsets.all(10),
-                child: Image.file(
-                  File(faceImagePath!),
-                  height: 150,
-                ),
+    return BlocListener<AuthBloc,AuthState>(
+      listener: (context, state) {
+        if (state is AuthSuccess) {
+          Navigator.pushNamed(context,"/attendance");
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(title: const Text("Register")),
+        body: Padding(
+          padding: const EdgeInsets.all(20),
+          child: ListView(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Name"),
+              ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: "Email"),
+              ),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: "Password"),
               ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            ElevatedButton(
-              onPressed: register,
-              child: const Text("Register"),
-            ),
-          ],
+              ElevatedButton(
+                onPressed: captureFace,
+                child: const Text("Capture Face"),
+              ),
+
+              if (faceImagePath != null)
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Image.file(
+                    File(faceImagePath!),
+                    height: 150,
+                  ),
+                ),
+
+              const SizedBox(height: 20),
+
+              ElevatedButton(
+                onPressed: register,
+                child: const Text("Register"),
+              ),
+            ],
+          ),
         ),
       ),
     );

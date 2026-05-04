@@ -1,5 +1,6 @@
 import 'package:facial_attendance/bloc/auth_bloc.dart';
 import 'package:facial_attendance/bloc/auth_state.dart';
+import 'package:facial_attendance/core/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -35,7 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: BlocConsumer<AuthBloc,AuthState>(
           listener: (context, state) {
             if (state is AuthSuccess) {
-              Navigator.pushReplacementNamed(context, "/attendance");
+              Navigator.pushReplacementNamed(context,"/attendance");
             }
           },
           builder: (context, state) {
@@ -75,6 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             );
           },
+
         ),
       ),
     );

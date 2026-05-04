@@ -20,25 +20,39 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   String message = "Mark your attendance";
 
 
+  // Future<void> markAttendance() async {
+  //   final result = await Navigator.pushNamed(context, "/camera");
+  //
+  //   if (result == null) return;
+  //
+  //   final imagePath = result as String;
+  //
+  //   // Let Bloc handle everything
+  //   context.read<AttendanceBloc>().add(MarkAttendanceEvent(imagePath));
+  // }
   Future<void> markAttendance() async {
-    final result = await Navigator.pushNamed(context, "/camera");
+    try {
+      // Use this safer way
+      final result = await Navigator.of(context, rootNavigator: true)
+          .pushNamed("/camera");
 
-    if (result == null) return;
+      if (result == null) return;
 
-    final imagePath = result as String;
+      final imagePath = result as String;
 
-    bool isMatch = await verifyFace(
-      imagePath,
-      widget.embeddingService,
-    );
-
-    setState(() {
-      message = isMatch
-          ? "✅ Attendance Marked"
-          : "❌ Face Not Matched";
-    });
+      // Send to Bloc
+      if (mounted) {
+        context.read<AttendanceBloc>().add(MarkAttendanceEvent(imagePath));
+      }
+    } catch (e) {
+      print("Navigation Error: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Cannot open camera. Try again.")),
+        );
+      }
+    }
   }
-
   @override
   Widget build(BuildContext context) {
     return BackButtonListener(
@@ -51,51 +65,41 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         body: Center(
           child: BlocConsumer<AttendanceBloc,AttendanceState>(
 
-            listener: (context, state) {
-              if (state is AttendanceSuccess) {
-                // ScaffoldMessenger.of(context)
-                //     .showSnackBar(SnackBar(content: Text("✅ Attendance Marked")));
-              } else if (state is AttendanceFailure) {
-
-                // ScaffoldMessenger.of(context)
-                //     .showSnackBar(SnackBar(content: Text("❌ Failed")));
-              }
-            },
-            builder: (context, state) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(message, style: const TextStyle(fontSize: 18)),
-
-                  const SizedBox(height: 20),
-
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final path = await Navigator.pushNamed(context, "/camera");
-
-                      if (path != null) {
-                        context.read<AttendanceBloc>().add(
-                          MarkAttendanceEvent(path as String),
-                        );
-                      }
-                      bool isMatch = await verifyFace(path.toString(),widget.embeddingService); // replace with actual logic
-
-                      setState(() {
-                        message = isMatch
-                            ? "✅ Attendance Marked"
-                            : "❌ Face Not Matched";
-                      });
-                    },
-
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text("Scan Face"),
-                  )
-                ],
+          listener: (context, state) {
+            if (state is AttendanceSuccess) {
+              setState(() => message = "✅ Attendance Marked Successfully");
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("✅ Attendance Marked!")),
               );
-            },
-          ),
+            } else if (state is AttendanceFailure) {
+              setState(() => message = "❌ Face Not Matched");
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("❌ Face not recognized")),
+              );
+            }
+          },
+          builder: (context, state) {
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(message, style: const TextStyle(fontSize: 20)),
+                const SizedBox(height: 30),
+                ElevatedButton.icon(
+                  onPressed: markAttendance,
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text("Scan Face"),
+                ),
+                if (state is AttendanceLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator(),
+                  ),
+              ],
+            );
+          },
         ),
       ),
+    ),
     );
   }
 }

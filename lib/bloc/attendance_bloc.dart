@@ -17,7 +17,7 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
   AttendanceBloc(this.faceService, this.storage, this.api,this.embeddingService)
       : super(AttendanceInitial()) {
 
-    on<MarkAttendanceEvent>((event, emit) async {
+   /* on<MarkAttendanceEvent>((event, emit) async {
       emit(AttendanceLoading());
 
       try {
@@ -44,13 +44,31 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         // final isMatch = await verifyFace(event.imagePath);
 
         if (score < 50) {
+
           emit(AttendanceSuccess());
         } else {
           emit(AttendanceFailure());
         }
 
       } catch (_) {
-        //storage.clearEmbedding();
+        storage.clearEmbedding();
+        emit(AttendanceFailure());
+      }
+    });*/
+
+    on<MarkAttendanceEvent>((event, emit) async {
+      emit(AttendanceLoading());
+
+      try {
+        final isMatch = await verifyFace(event.imagePath, embeddingService);
+
+        if (isMatch) {
+          emit(AttendanceSuccess());
+        } else {
+          emit(AttendanceFailure());
+        }
+      } catch (e) {
+        print("Error in MarkAttendance: $e");
         emit(AttendanceFailure());
       }
     });

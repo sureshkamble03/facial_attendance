@@ -12,6 +12,7 @@ class FaceEmbeddingService {
     _isLoaded = true;
   }
 
+
   /// Convert image → embedding vector
   // Future<List<double>> getEmbedding(img.Image image) async {
   //   if (!_isLoaded) {
@@ -45,12 +46,14 @@ class FaceEmbeddingService {
     if (!_isLoaded) throw Exception('Model not loaded');
 
     final resized = img.copyResize(image, width: 112, height: 112);
+
     final input = Float32List(1 * 112 * 112 * 3);
 
     int index = 0;
     for (int y = 0; y < 112; y++) {
       for (int x = 0; x < 112; x++) {
         final pixel = resized.getPixel(x, y);
+
         input[index++] = (pixel.r - 128) / 128;
         input[index++] = (pixel.g - 128) / 128;
         input[index++] = (pixel.b - 128) / 128;
