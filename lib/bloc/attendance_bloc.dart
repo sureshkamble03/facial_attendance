@@ -44,14 +44,13 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
         // final isMatch = await verifyFace(event.imagePath);
 
         if (score < 50) {
-
           emit(AttendanceSuccess());
         } else {
           emit(AttendanceFailure());
         }
 
       } catch (_) {
-        storage.clearEmbedding();
+        //storage.clearEmbedding();
         emit(AttendanceFailure());
       }
     });

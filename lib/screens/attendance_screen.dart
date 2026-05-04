@@ -81,7 +81,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                     });
                   },
 
-
                   icon: const Icon(Icons.camera_alt),
                   label: const Text("Scan Face"),
                 )

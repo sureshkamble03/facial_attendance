@@ -49,6 +49,7 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         routes: {
           "/": (_) => LoginScreen(),
           "/register": (_) => RegisterScreen(embeddingService: embeddingService,),

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
@@ -6,11 +7,15 @@ class LocalStorage {
 
   /// Save embedding
   Future<void> saveEmbedding(List<double> embedding) async {
-    final prefs = await SharedPreferences.getInstance();
-    final data = jsonEncode(embedding);
-    print("Saving embedding length: ${embedding.length}");
+    // Validate before saving — never save bad data
+    if (embedding.length != 192) {
+      debugPrint('❌ saveEmbedding: refusing to save invalid embedding length ${embedding.length}');
+      return;
+    }
 
-    await prefs.setString(keyEmbedding, data);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(keyEmbedding, jsonEncode(embedding));
+    debugPrint('✅ saveEmbedding: saved → length: ${embedding.length}');
   }
 
   /// Get embedding
@@ -18,11 +23,33 @@ class LocalStorage {
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(keyEmbedding);
 
-    if (data == null) return null;
+    // No embedding saved yet
+    if (data == null) {
+      debugPrint('❌ getEmbedding: no data found for key "$keyEmbedding"');
+      return null;
+    }
 
-    final List<dynamic> decoded = jsonDecode(data);
+    // Decode JSON
+    final List<dynamic> decoded;
+    try {
+      decoded = jsonDecode(data);
+    } catch (e) {
+      debugPrint('❌ getEmbedding: JSON decode failed → $e');
+      await prefs.remove(keyEmbedding); // clear corrupted data
+      return null;
+    }
 
-    return decoded.map((e) => (e as num).toDouble()).toList();
+    // Validate length — must be exactly 192
+    if (decoded.length != 192) {
+      debugPrint('❌ getEmbedding: invalid length ${decoded.length}, expected 192 → clearing');
+      await prefs.remove(keyEmbedding); // clear bad data so re-register works cleanly
+      return null;
+    }
+
+    final embedding = decoded.map((e) => (e as num).toDouble()).toList();
+
+    debugPrint('✅ getEmbedding: loaded successfully → length: ${embedding.length}');
+    return embedding;
   }
 
   /// Optional: clear stored face

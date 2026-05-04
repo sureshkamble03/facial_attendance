@@ -2,6 +2,7 @@ import 'package:facial_attendance/bloc/auth_event.dart';
 import 'package:facial_attendance/bloc/auth_state.dart';
 import 'package:facial_attendance/core/face_service.dart';
 import 'package:facial_attendance/core/local_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
@@ -19,17 +20,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<RegisterEvent>((event, emit) async {
       emit(AuthLoading());
 
-      final face = await faceService.detectSingleFace(event.imagePath);
+      try {
+        // Embedding already computed and validated in register()
+        // Just save it directly — no need to recompute
+        await storage.saveEmbedding(event.imagePath); // ← 192 values ✅
 
-      if (face == null) {
-        emit(AuthError("No face detected"));
-        return;
+        debugPrint('✅ BLoC: embedding saved → length: ${event.imagePath.length}');
+        emit(AuthSuccess());
+
+      } catch (e) {
+        debugPrint('❌ BLoC: registration failed → $e');
+        emit(AuthError('Registration failed: $e'));
       }
-
-      final features = faceService.extractFeatures(face);
-      await storage.saveEmbedding(features);
-
-      emit(AuthSuccess());
     });
   }
 }

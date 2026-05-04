@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image/image.dart' as img;
 
+import '../core/face_service.dart';
+
 class RegisterScreen extends StatefulWidget {
   final FaceEmbeddingService embeddingService;
 
@@ -37,34 +39,54 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void register() async {
     if (faceImagePath == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please capture face")),
+        const SnackBar(content: Text('Please capture face')),
       );
       return;
     }
 
-    // ✅ Convert file → bytes → image
+    // Step 1 — decode image
     final file = File(faceImagePath!);
     final bytes = await file.readAsBytes();
-
     final img.Image? image = img.decodeImage(bytes);
-
     if (image == null) {
-      print("❌ Failed to decode image");
+      debugPrint('❌ Failed to decode image');
       return;
     }
 
-    // ✅ Now generate embedding
-    final embedding =
-    await widget.embeddingService.getEmbedding(image);
+    // Step 2 — detect face and crop it first
+    // ✅ Always crop before embedding — raw image gives bad results
+    final face = await FaceService().detectSingleFace(faceImagePath!);
+    if (face == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No face detected. Please retake photo')),
+      );
+      return;
+    }
 
-    print("Embedding length: ${embedding.length}");
+    final cropped = await FaceService().cropFace(faceImagePath!, face);
+    if (cropped == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Face crop failed. Please retake photo')),
+      );
+      return;
+    }
 
+    // Step 3 — generate 192-value embedding from CROPPED face
+    final embedding = await widget.embeddingService.getEmbedding(cropped);
+    debugPrint('✅ Registration embedding length: ${embedding.length}');
+
+    if (embedding.length != 192) {
+      debugPrint('❌ Wrong embedding size: ${embedding.length}');
+      return;
+    }
+
+    // Step 4 — pass embedding to bloc
     context.read<AuthBloc>().add(
       RegisterEvent(
         nameController.text,
         emailController.text,
         passwordController.text,
-        faceImagePath!,
+        embedding, // ← 192 values passed here
       ),
     );
 
