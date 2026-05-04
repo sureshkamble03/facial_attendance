@@ -12,7 +12,6 @@ class FaceEmbeddingService {
     _isLoaded = true;
   }
 
-
   /// Convert image → embedding vector
   // Future<List<double>> getEmbedding(img.Image image) async {
   //   if (!_isLoaded) {
@@ -43,7 +42,7 @@ class FaceEmbeddingService {
   //   return output[0];
   // }
   Future<List<double>> getEmbedding(img.Image image) async {
-    if (!_isLoaded) throw Exception('Model not loaded');
+    if (!_isLoaded) throw loadModel();
 
     final resized = img.copyResize(image, width: 112, height: 112);
 

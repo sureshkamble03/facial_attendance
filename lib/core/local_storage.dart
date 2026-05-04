@@ -1,9 +1,36 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 class LocalStorage {
   static const String keyEmbedding = "face_embedding";
+
+  late Interpreter _interpreter;
+  bool _isLoaded = false;
+
+  // ✅ Auto-load if not already loaded — never crashes with "Model not loaded"
+  Future<void> ensureLoaded() async {
+    if (!_isLoaded) await loadModel();
+  }
+
+  Future<void> loadModel() async {
+    if (_isLoaded) {
+      debugPrint('ℹ️ Model already loaded — skipping');
+      return;
+    }
+    try {
+      _interpreter = await Interpreter.fromAsset(
+        'assets/model/mobilefacenet.tflite',
+      );
+      _isLoaded = true;
+      debugPrint('✅ MobileFaceNet model loaded');
+    } catch (e) {
+      _isLoaded = false;
+      debugPrint('❌ Model load failed: $e');
+      rethrow;
+    }
+  }
 
   /// Save embedding
   Future<void> saveEmbedding(List<double> embedding) async {
@@ -20,6 +47,8 @@ class LocalStorage {
 
   /// Get embedding
   Future<List<double>?> getEmbedding() async {
+    await ensureLoaded();
+
     final prefs = await SharedPreferences.getInstance();
     final data = prefs.getString(keyEmbedding);
 
@@ -56,7 +85,6 @@ class LocalStorage {
   Future<void> clearEmbedding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-
-    // await prefs.remove(keyEmbedding);
+    await prefs.remove(keyEmbedding);
   }
 }

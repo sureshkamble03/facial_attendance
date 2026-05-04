@@ -19,7 +19,6 @@ class AttendanceScreen extends StatefulWidget {
 class _AttendanceScreenState extends State<AttendanceScreen> {
   String message = "Mark your attendance";
 
-
   // Future<void> markAttendance() async {
   //   final result = await Navigator.pushNamed(context, "/camera");
   //
@@ -30,9 +29,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   //   // Let Bloc handle everything
   //   context.read<AttendanceBloc>().add(MarkAttendanceEvent(imagePath));
   // }
+
   Future<void> markAttendance() async {
     try {
-      // Use this safer way
       final result = await Navigator.of(context, rootNavigator: true)
           .pushNamed("/camera");
 
@@ -40,9 +39,10 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
       final imagePath = result as String;
 
-      // Send to Bloc
       if (mounted) {
-        context.read<AttendanceBloc>().add(MarkAttendanceEvent(imagePath));
+        context.read<AttendanceBloc>().add(
+          MarkAttendanceEvent(imagePath),
+        );
       }
     } catch (e) {
       print("Navigation Error: $e");
@@ -53,18 +53,13 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       }
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    return BackButtonListener(
-      onBackButtonPressed: () async {
-        context.go('/');
-        return true;
-      },
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(title: const Text("Attendance")),
         body: Center(
           child: BlocConsumer<AttendanceBloc,AttendanceState>(
-
           listener: (context, state) {
             if (state is AttendanceSuccess) {
               setState(() => message = "✅ Attendance Marked Successfully");
@@ -85,7 +80,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
                 Text(message, style: const TextStyle(fontSize: 20)),
                 const SizedBox(height: 30),
                 ElevatedButton.icon(
-                  onPressed: markAttendance,
+                  onPressed: (){markAttendance();},
                   icon: const Icon(Icons.camera_alt),
                   label: const Text("Scan Face"),
                 ),
@@ -99,7 +94,6 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
           },
         ),
       ),
-    ),
     );
   }
 }

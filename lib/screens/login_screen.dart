@@ -1,8 +1,10 @@
 import 'package:facial_attendance/bloc/auth_bloc.dart';
+import 'package:facial_attendance/bloc/auth_event.dart';
 import 'package:facial_attendance/bloc/auth_state.dart';
 import 'package:facial_attendance/core/local_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,10 +23,17 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => isLoading = true);
 
     // TODO: call your API / BLoC
-    await Future.delayed(const Duration(seconds: 2));
+    //await Future.delayed(const Duration(seconds: 2));
 
     setState(() => isLoading = false);
-
+    context.go('/attendance');
+    // context.read<AuthBloc>().add(
+    //   LoginEvent(
+    //     emailController.text,
+    //     passwordController.text,
+    //   ),
+    // );
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, "/attendance");
   }
 
