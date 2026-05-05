@@ -55,10 +55,12 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return BackButtonListener(
-      onBackButtonPressed: () async {
-        context.go('/');
-        return true;
+    return PopScope(
+      canPop: false,                    // Prevent default back behavior
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop) {
+          Navigator.pop(context);
+        }
       },
       child: Scaffold(
         appBar: AppBar(title: const Text("Attendance")),

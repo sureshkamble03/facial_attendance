@@ -1,39 +1,33 @@
-
 import 'package:facial_attendance/api_section/api_service.dart';
 import 'package:facial_attendance/bloc/attendance_bloc.dart';
 import 'package:facial_attendance/bloc/auth_bloc.dart';
 import 'package:facial_attendance/core/embedding_service.dart';
 import 'package:facial_attendance/core/face_service.dart';
 import 'package:facial_attendance/core/local_storage.dart';
+import 'package:facial_attendance/screens/attendance_report_screen.dart';
 import 'package:facial_attendance/screens/attendance_screen.dart';
 import 'package:facial_attendance/screens/camera_screen.dart';
-import 'package:facial_attendance/screens/login_screen.dart';
+import 'package:facial_attendance/screens/dashboard.dart';
 import 'package:facial_attendance/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final embeddingService = FaceEmbeddingService();
   await embeddingService.loadModel();
+
   runApp(MyApp(embeddingService));
 }
 
 class MyApp extends StatelessWidget {
   final FaceEmbeddingService embeddingService;
 
-  MyApp(this.embeddingService,{super.key});
+  const MyApp(this.embeddingService, {super.key});
 
-  final apiService = ApiService();
-  final facialService = FaceService();
-  final localStorage = LocalStorage();
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // final mediaQuery = MediaQuery.of(context);
-
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -44,17 +38,37 @@ class MyApp extends StatelessWidget {
             FaceService(),
             LocalStorage(),
             ApiService(),
-            FaceEmbeddingService()
+            FaceEmbeddingService(), // Better to pass the same instance if possible
           ),
         ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        routes: {
-          "/": (_) => LoginScreen(),
-          "/register": (_) => RegisterScreen(embeddingService: embeddingService,),
-          "/attendance": (_) => AttendanceScreen(embeddingService: embeddingService,),
-          "/camera": (_) => CameraScreen(),
+        initialRoute: "/",
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case "/":
+              return MaterialPageRoute(builder: (_) => const Dashboard());
+
+            case "/register":
+              return MaterialPageRoute(
+                builder: (_) => RegisterScreen(embeddingService: embeddingService),
+              );
+
+            case "/attendance":
+              return MaterialPageRoute(
+                builder: (_) => AttendanceScreen(embeddingService: embeddingService),
+              );
+
+            case "/attendance_report":
+              return MaterialPageRoute(builder: (_) => const AttendanceReportScreen());
+
+            case "/camera":
+              return MaterialPageRoute(builder: (_) => const CameraScreen());
+
+            default:
+              return MaterialPageRoute(builder: (_) => const Dashboard());
+          }
         },
       ),
     );
