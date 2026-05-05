@@ -2,10 +2,8 @@ import 'package:facial_attendance/bloc/attendance_bloc.dart';
 import 'package:facial_attendance/bloc/attendance_event.dart';
 import 'package:facial_attendance/bloc/attendance_state.dart';
 import 'package:facial_attendance/core/embedding_service.dart';
-import 'package:facial_attendance/core/verify_face.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
 class AttendanceScreen extends StatefulWidget {
   final FaceEmbeddingService embeddingService;

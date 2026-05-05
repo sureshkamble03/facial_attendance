@@ -91,7 +91,7 @@ class AttendanceService {
     required String role,
   }) async {
     // Check already marked
-    final alreadyMarked = await db.isAlreadyMarked(sessionId, userId);
+    final alreadyMarked = await db.isAlreadyMarked(userId);
     if (alreadyMarked) return 'already_marked';
 
     // Verify face
@@ -99,18 +99,16 @@ class AttendanceService {
     if (!verified) return 'face_mismatch';
 
     final now = TimeOfDay.now();
-    final markedAt =
-        '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:00';
+    final markedAt = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:00';
 
     // Mark attendance
     await db.markAttendance(
       AttendanceRecordsCompanion.insert(
-        sessionId: sessionId,
         userId: userId,
         role: role,
         markedAt: markedAt,
         method: const Value('face'),
-        status: const Value('present'),
+        status: const Value('present'), markedDate: DateTime.now(),
       ),
     );
 
