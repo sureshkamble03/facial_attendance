@@ -3,10 +3,10 @@
 import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
-import '../core/face_service.dart';
-import 'app_database.dart';
-import '../core/embedding_service.dart';
-import '../core/face_service.dart';
+import 'face_service.dart';
+import '../local_database/app_database.dart';
+import 'embedding_service.dart';
+import 'face_service.dart';
 
 class AttendanceService {
   final AppDatabase db;

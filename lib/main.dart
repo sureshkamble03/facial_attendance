@@ -11,10 +11,33 @@ import 'package:facial_attendance/screens/login_screen.dart';
 import 'package:facial_attendance/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'core/attendance_service.dart';
+import 'local_database/app_database.dart';
+
+final getIt = GetIt.instance;
+
+Future<void> setupLocator() async {
+  // Database — singleton
+  getIt.registerSingleton<AppDatabase>(AppDatabase());
+
+  // Embedding service — load model once
+  final embeddingService = FaceEmbeddingService();
+  await embeddingService.loadModel();
+  getIt.registerSingleton<FaceEmbeddingService>(embeddingService);
+
+  // Attendance service
+  getIt.registerSingleton<AttendanceService>(
+    AttendanceService(
+      db: getIt<AppDatabase>(),
+      embeddingService: getIt<FaceEmbeddingService>(),
+    ),
+  );
+}
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-
+  await setupLocator();
   final embeddingService = FaceEmbeddingService();
   await embeddingService.loadModel();
   runApp(MyApp(embeddingService));
