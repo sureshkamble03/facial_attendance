@@ -1,5 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:ui';
+import 'package:facial_attendance/core/crop_face_from_image.dart';
+import 'package:facial_attendance/core/face_service.dart';
+import 'package:facial_attendance/core/match_result.dart';
+import 'package:facial_attendance/local_database/app_database.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
@@ -93,4 +100,75 @@ class FaceEmbeddingService {
 
     return dotProduct / (sqrt(normA) * sqrt(normB));
   }
+
+ /* Future<void> processGroupPhotoForAttendance(File groupPhoto) async {
+    final inputImage = InputImage.fromFile(groupPhoto);
+
+    // Step 1: Detect all faces
+    final faceDetector = FaceDetector(
+      options: FaceDetectorOptions(
+        enableContours: false,
+        enableLandmarks: false,
+        performanceMode: FaceDetectorMode.accurate,
+      ),
+    );
+
+    final List<Face> faces = await faceDetector.processImage(inputImage);
+    faceDetector.close();
+
+    if (faces.isEmpty) {
+      print("No faces detected");
+      return;
+    }
+
+    final recognitionService = FaceEmbeddingService();
+    await recognitionService.loadModel();
+
+    List<AttendanceRecord> markedRecords = [];
+
+    for (Face face in faces) {
+      final Rect box = face.boundingBox;
+
+      // Step 2: Crop face from original image
+      final croppedImage = await cropFaceFromImage(groupPhoto, box);
+
+      // Step 3: Get embedding
+      final embedding = await recognitionService.getEmbedding(croppedImage as img.Image);
+
+      // Step 4: Find best match from registered users
+      final match = await findBestMatch(embedding);
+
+      if (match != null && match.distance < 0.6) {  // Threshold tuning needed
+        // Mark attendance
+        await markAttendance(
+          userId: match.userId,
+          method: 'face',
+          similarityScore: 1 - match.distance,
+        );
+
+        markedRecords.add(...);
+      }
+    }
+
+    print("${markedRecords.length} users marked present from group photo");
+  }
+
+  Future<MatchResult?> findBestMatch(List<double> newEmbedding) async {
+    final db = context.read<AppDatabase>(); // or inject your database
+
+    final allUsers = await db.usersDao.getAllUsersWithEmbeddings();
+
+    double minDistance = double.infinity;
+    User? bestUser;
+
+    for (var user in allUsers) {
+      final distance = euclideanDistance(newEmbedding, user.embedding);
+      if (distance < minDistance) {
+        minDistance = distance;
+        bestUser = user;
+      }
+    }
+
+    return minDistance < threshold ? MatchResult(bestUser!, minDistance) : null;
+  }*/
 }
