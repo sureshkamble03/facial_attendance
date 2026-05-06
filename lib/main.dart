@@ -9,6 +9,7 @@ import 'package:facial_attendance/core/local_storage.dart';
 import 'package:facial_attendance/screens/attendance_log.dart';
 import 'package:facial_attendance/screens/attendance_screen.dart';
 import 'package:facial_attendance/screens/camera_screen.dart';
+import 'package:facial_attendance/screens/embeding_test_screen_from_url.dart';
 import 'package:facial_attendance/screens/login_screen.dart';
 import 'package:facial_attendance/screens/new_attendance_screen.dart';
 import 'package:facial_attendance/screens/register_screen.dart';
@@ -42,8 +43,6 @@ Future<void> setupLocator() async {
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
   await setupLocator();
- // final embeddingService = FaceEmbeddingService();
-  // await embeddingService.loadModel();
   runApp(MyApp());
 }
 
@@ -54,7 +53,6 @@ class MyApp extends StatelessWidget {
   final apiService = ApiService();
   final facialService = FaceService();
   final localStorage = LocalStorage();
-  final db = AppDatabase();
 
   // This widget is the root of your application.
   @override
@@ -62,7 +60,7 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => AuthBloc(FaceService(), LocalStorage(),db),
+          create: (_) => AuthBloc(FaceService(), LocalStorage(),getIt<AppDatabase>()),
         ),
         BlocProvider(
           create: (_) => AttendanceBloc(
@@ -73,7 +71,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         BlocProvider(
-          create: (_) => UsersBloc(db),
+          create: (_) => UsersBloc(getIt<AppDatabase>()),
         ),
       ],
       child: MaterialApp(
@@ -86,6 +84,7 @@ class MyApp extends StatelessWidget {
           "/userlist": (_) => UsersList(),
           "/markattendance": (_) => ScanCameraScreen(sessionId: 1, db: getIt<AppDatabase>(),),
           "/attendanceReport": (_) => AttendanceLogsScreen(db: getIt<AppDatabase>(),),
+          "/urlembedding": (_) => EmbeddingTestScreen(db: getIt<AppDatabase>(),),
         },
       ),
     );

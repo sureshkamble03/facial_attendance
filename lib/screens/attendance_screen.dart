@@ -55,7 +55,9 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text("Attendance")),
+        appBar: AppBar(title: const Text("Attendance"),
+          backgroundColor: Colors.blue.shade300,
+          foregroundColor: Colors.white,),
         body: Center(
           child: BlocConsumer<AttendanceBloc,AttendanceState>(
           listener: (context, state) {

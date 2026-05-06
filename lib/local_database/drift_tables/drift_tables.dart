@@ -1,4 +1,3 @@
-// lib/database/tables.dart
 
 import 'package:drift/drift.dart';
 

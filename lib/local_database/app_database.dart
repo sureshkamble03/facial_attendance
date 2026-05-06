@@ -89,9 +89,10 @@ class AppDatabase extends _$AppDatabase {
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
           .get();
 
-  Future<void> saveUserEmbedding(int userId, String embeddingJson) async {
+  Future<void> saveUserEmbedding(int userId, String embeddingJson,String imagePath) async {
     await (update(users)..where((u) => u.id.equals(userId))).write(
       UsersCompanion(
+        faceImagePath: Value(imagePath),
         embedding: Value(embeddingJson),
         isFaceRegistered: const Value(true),
       ),
@@ -250,8 +251,7 @@ class AppDatabase extends _$AppDatabase {
 
       // ── Step 6: Mark Attendance ──────────────────────────────────────────
       final now = DateTime.now();
-      final markedAt =
-          '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+      final markedAt = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
 
       final recordId = await markAttendance(
         AttendanceRecordsCompanion.insert(

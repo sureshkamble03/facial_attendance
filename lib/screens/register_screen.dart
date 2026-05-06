@@ -130,7 +130,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       },
       child: Scaffold(
-        appBar: AppBar(title: const Text("Register")),
+        appBar: AppBar(
+            title: const Text("Register"),
+          backgroundColor: Colors.blue.shade300,
+          foregroundColor: Colors.white),
         body: Padding(
           padding: const EdgeInsets.all(20),
           child: ListView(
@@ -145,11 +148,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const InputDecoration(labelText: "Email"),
               ),
 
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: "Password"),
-              ),
+              // TextField(
+              //   controller: passwordController,
+              //   obscureText: true,
+              //   decoration: const InputDecoration(labelText: "Password"),
+              // ),
 
               const SizedBox(height: 10),
 
@@ -183,16 +186,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   decoration: const InputDecoration(labelText: "Employee ID"),
                 ),
 
-              TextField(
-                controller: departmentController,
-                decoration: const InputDecoration(labelText: "Department"),
-              ),
+              // TextField(
+              //   controller: departmentController,
+              //   decoration: const InputDecoration(labelText: "Department"),
+              // ),
 
-              TextField(
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: const InputDecoration(labelText: "Phone"),
-              ),
+              // TextField(
+              //   controller: phoneController,
+              //   keyboardType: TextInputType.phone,
+              //   decoration: const InputDecoration(labelText: "Phone"),
+              // ),
 
               const SizedBox(height: 20),
 

@@ -49,6 +49,8 @@ dependencies:
   get_it:
   flutter_image_compress: ^2.0.0
   intl:
+  encrypt: ^5.0.3  # For AES-256 encryption
+#  face_recognition_kit:
 
 
 #  google_mlkit_face_detection: ^0.13.2

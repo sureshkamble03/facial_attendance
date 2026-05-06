@@ -112,7 +112,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Attendance Logs'),
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: Colors.blue.shade300,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
@@ -125,11 +125,11 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
         children: [
           // Filters
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8)
+                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4)
               ],
             ),
             child: Column(

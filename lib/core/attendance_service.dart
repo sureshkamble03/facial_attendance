@@ -36,7 +36,7 @@ class AttendanceService {
     }
 
     // Save embedding directly to DB against the user
-    await db.saveUserEmbedding(userId, jsonEncode(embedding));
+   // await db.saveUserEmbedding(userId, jsonEncode(embedding));
     debugPrint('✅ Face registered for userId: $userId');
     return true;
   }
