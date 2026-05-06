@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
+import 'package:tflite_flutter/tflite_flutter.dart';
 
 class FaceService {
   final FaceDetector _detector = FaceDetector(
@@ -9,6 +10,7 @@ class FaceService {
   );
 
   Future<Face?> detectSingleFace(String path) async {
+
     final inputImage = InputImage.fromFilePath(path);
     final faces = await _detector.processImage(inputImage);
     if (faces.isEmpty) return null;

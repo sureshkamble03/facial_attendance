@@ -58,7 +58,6 @@ class AttendanceBloc extends Bloc<AttendanceEvent, AttendanceState> {
 
     on<MarkAttendanceEvent>((event, emit) async {
       emit(AttendanceLoading());
-
       try {
         final isMatch = await verifyFace(event.imagePath, embeddingService);
 

@@ -48,9 +48,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Step 1 — decode image
     final file = File(faceImagePath!);
     final bytes = await file.readAsBytes();
-
     final img.Image? image = img.decodeImage(bytes);
-
     if (image == null) {
       debugPrint('❌ Failed to decode image');
       return;
