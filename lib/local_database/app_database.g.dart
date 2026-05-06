@@ -117,6 +117,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _faceImagePathMeta = const VerificationMeta(
+    'faceImagePath',
+  );
+  @override
+  late final GeneratedColumn<String> faceImagePath = GeneratedColumn<String>(
+    'face_image_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _isFaceRegisteredMeta = const VerificationMeta(
     'isFaceRegistered',
   );
@@ -156,6 +167,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     department,
     phone,
     embedding,
+    faceImagePath,
     isFaceRegistered,
     createdAt,
   ];
@@ -236,6 +248,15 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         embedding.isAcceptableOrUnknown(data['embedding']!, _embeddingMeta),
       );
     }
+    if (data.containsKey('face_image_path')) {
+      context.handle(
+        _faceImagePathMeta,
+        faceImagePath.isAcceptableOrUnknown(
+          data['face_image_path']!,
+          _faceImagePathMeta,
+        ),
+      );
+    }
     if (data.containsKey('is_face_registered')) {
       context.handle(
         _isFaceRegisteredMeta,
@@ -300,6 +321,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}embedding'],
       ),
+      faceImagePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}face_image_path'],
+      ),
       isFaceRegistered: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_face_registered'],
@@ -328,6 +353,7 @@ class User extends DataClass implements Insertable<User> {
   final String? department;
   final String? phone;
   final String? embedding;
+  final String? faceImagePath;
   final bool isFaceRegistered;
   final DateTime createdAt;
   const User({
@@ -341,6 +367,7 @@ class User extends DataClass implements Insertable<User> {
     this.department,
     this.phone,
     this.embedding,
+    this.faceImagePath,
     required this.isFaceRegistered,
     required this.createdAt,
   });
@@ -366,6 +393,9 @@ class User extends DataClass implements Insertable<User> {
     }
     if (!nullToAbsent || embedding != null) {
       map['embedding'] = Variable<String>(embedding);
+    }
+    if (!nullToAbsent || faceImagePath != null) {
+      map['face_image_path'] = Variable<String>(faceImagePath);
     }
     map['is_face_registered'] = Variable<bool>(isFaceRegistered);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -394,6 +424,9 @@ class User extends DataClass implements Insertable<User> {
       embedding: embedding == null && nullToAbsent
           ? const Value.absent()
           : Value(embedding),
+      faceImagePath: faceImagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(faceImagePath),
       isFaceRegistered: Value(isFaceRegistered),
       createdAt: Value(createdAt),
     );
@@ -415,6 +448,7 @@ class User extends DataClass implements Insertable<User> {
       department: serializer.fromJson<String?>(json['department']),
       phone: serializer.fromJson<String?>(json['phone']),
       embedding: serializer.fromJson<String?>(json['embedding']),
+      faceImagePath: serializer.fromJson<String?>(json['faceImagePath']),
       isFaceRegistered: serializer.fromJson<bool>(json['isFaceRegistered']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -433,6 +467,7 @@ class User extends DataClass implements Insertable<User> {
       'department': serializer.toJson<String?>(department),
       'phone': serializer.toJson<String?>(phone),
       'embedding': serializer.toJson<String?>(embedding),
+      'faceImagePath': serializer.toJson<String?>(faceImagePath),
       'isFaceRegistered': serializer.toJson<bool>(isFaceRegistered),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -449,6 +484,7 @@ class User extends DataClass implements Insertable<User> {
     Value<String?> department = const Value.absent(),
     Value<String?> phone = const Value.absent(),
     Value<String?> embedding = const Value.absent(),
+    Value<String?> faceImagePath = const Value.absent(),
     bool? isFaceRegistered,
     DateTime? createdAt,
   }) => User(
@@ -462,6 +498,9 @@ class User extends DataClass implements Insertable<User> {
     department: department.present ? department.value : this.department,
     phone: phone.present ? phone.value : this.phone,
     embedding: embedding.present ? embedding.value : this.embedding,
+    faceImagePath: faceImagePath.present
+        ? faceImagePath.value
+        : this.faceImagePath,
     isFaceRegistered: isFaceRegistered ?? this.isFaceRegistered,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -483,6 +522,9 @@ class User extends DataClass implements Insertable<User> {
           : this.department,
       phone: data.phone.present ? data.phone.value : this.phone,
       embedding: data.embedding.present ? data.embedding.value : this.embedding,
+      faceImagePath: data.faceImagePath.present
+          ? data.faceImagePath.value
+          : this.faceImagePath,
       isFaceRegistered: data.isFaceRegistered.present
           ? data.isFaceRegistered.value
           : this.isFaceRegistered,
@@ -503,6 +545,7 @@ class User extends DataClass implements Insertable<User> {
           ..write('department: $department, ')
           ..write('phone: $phone, ')
           ..write('embedding: $embedding, ')
+          ..write('faceImagePath: $faceImagePath, ')
           ..write('isFaceRegistered: $isFaceRegistered, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -521,6 +564,7 @@ class User extends DataClass implements Insertable<User> {
     department,
     phone,
     embedding,
+    faceImagePath,
     isFaceRegistered,
     createdAt,
   );
@@ -538,6 +582,7 @@ class User extends DataClass implements Insertable<User> {
           other.department == this.department &&
           other.phone == this.phone &&
           other.embedding == this.embedding &&
+          other.faceImagePath == this.faceImagePath &&
           other.isFaceRegistered == this.isFaceRegistered &&
           other.createdAt == this.createdAt);
 }
@@ -553,6 +598,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<String?> department;
   final Value<String?> phone;
   final Value<String?> embedding;
+  final Value<String?> faceImagePath;
   final Value<bool> isFaceRegistered;
   final Value<DateTime> createdAt;
   const UsersCompanion({
@@ -566,6 +612,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.department = const Value.absent(),
     this.phone = const Value.absent(),
     this.embedding = const Value.absent(),
+    this.faceImagePath = const Value.absent(),
     this.isFaceRegistered = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -580,6 +627,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.department = const Value.absent(),
     this.phone = const Value.absent(),
     this.embedding = const Value.absent(),
+    this.faceImagePath = const Value.absent(),
     this.isFaceRegistered = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
@@ -597,6 +645,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<String>? department,
     Expression<String>? phone,
     Expression<String>? embedding,
+    Expression<String>? faceImagePath,
     Expression<bool>? isFaceRegistered,
     Expression<DateTime>? createdAt,
   }) {
@@ -611,6 +660,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (department != null) 'department': department,
       if (phone != null) 'phone': phone,
       if (embedding != null) 'embedding': embedding,
+      if (faceImagePath != null) 'face_image_path': faceImagePath,
       if (isFaceRegistered != null) 'is_face_registered': isFaceRegistered,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -627,6 +677,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<String?>? department,
     Value<String?>? phone,
     Value<String?>? embedding,
+    Value<String?>? faceImagePath,
     Value<bool>? isFaceRegistered,
     Value<DateTime>? createdAt,
   }) {
@@ -641,6 +692,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       department: department ?? this.department,
       phone: phone ?? this.phone,
       embedding: embedding ?? this.embedding,
+      faceImagePath: faceImagePath ?? this.faceImagePath,
       isFaceRegistered: isFaceRegistered ?? this.isFaceRegistered,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -679,6 +731,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (embedding.present) {
       map['embedding'] = Variable<String>(embedding.value);
     }
+    if (faceImagePath.present) {
+      map['face_image_path'] = Variable<String>(faceImagePath.value);
+    }
     if (isFaceRegistered.present) {
       map['is_face_registered'] = Variable<bool>(isFaceRegistered.value);
     }
@@ -701,6 +756,7 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('department: $department, ')
           ..write('phone: $phone, ')
           ..write('embedding: $embedding, ')
+          ..write('faceImagePath: $faceImagePath, ')
           ..write('isFaceRegistered: $isFaceRegistered, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -1437,20 +1493,6 @@ class $AttendanceSessionsTable extends AttendanceSessions
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
-  static const VerificationMeta _subjectIdMeta = const VerificationMeta(
-    'subjectId',
-  );
-  @override
-  late final GeneratedColumn<int> subjectId = GeneratedColumn<int>(
-    'subject_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES subjects (id)',
-    ),
-  );
   static const VerificationMeta _teacherIdMeta = const VerificationMeta(
     'teacherId',
   );
@@ -1534,7 +1576,6 @@ class $AttendanceSessionsTable extends AttendanceSessions
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    subjectId,
     teacherId,
     sessionDate,
     startTime,
@@ -1557,14 +1598,6 @@ class $AttendanceSessionsTable extends AttendanceSessions
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('subject_id')) {
-      context.handle(
-        _subjectIdMeta,
-        subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_subjectIdMeta);
     }
     if (data.containsKey('teacher_id')) {
       context.handle(
@@ -1630,10 +1663,6 @@ class $AttendanceSessionsTable extends AttendanceSessions
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
-      subjectId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}subject_id'],
-      )!,
       teacherId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}teacher_id'],
@@ -1674,7 +1703,6 @@ class $AttendanceSessionsTable extends AttendanceSessions
 class AttendanceSession extends DataClass
     implements Insertable<AttendanceSession> {
   final int id;
-  final int subjectId;
   final int teacherId;
   final String sessionDate;
   final String startTime;
@@ -1684,7 +1712,6 @@ class AttendanceSession extends DataClass
   final DateTime createdAt;
   const AttendanceSession({
     required this.id,
-    required this.subjectId,
     required this.teacherId,
     required this.sessionDate,
     required this.startTime,
@@ -1697,7 +1724,6 @@ class AttendanceSession extends DataClass
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['subject_id'] = Variable<int>(subjectId);
     map['teacher_id'] = Variable<int>(teacherId);
     map['session_date'] = Variable<String>(sessionDate);
     map['start_time'] = Variable<String>(startTime);
@@ -1715,7 +1741,6 @@ class AttendanceSession extends DataClass
   AttendanceSessionsCompanion toCompanion(bool nullToAbsent) {
     return AttendanceSessionsCompanion(
       id: Value(id),
-      subjectId: Value(subjectId),
       teacherId: Value(teacherId),
       sessionDate: Value(sessionDate),
       startTime: Value(startTime),
@@ -1737,7 +1762,6 @@ class AttendanceSession extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AttendanceSession(
       id: serializer.fromJson<int>(json['id']),
-      subjectId: serializer.fromJson<int>(json['subjectId']),
       teacherId: serializer.fromJson<int>(json['teacherId']),
       sessionDate: serializer.fromJson<String>(json['sessionDate']),
       startTime: serializer.fromJson<String>(json['startTime']),
@@ -1752,7 +1776,6 @@ class AttendanceSession extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'subjectId': serializer.toJson<int>(subjectId),
       'teacherId': serializer.toJson<int>(teacherId),
       'sessionDate': serializer.toJson<String>(sessionDate),
       'startTime': serializer.toJson<String>(startTime),
@@ -1765,7 +1788,6 @@ class AttendanceSession extends DataClass
 
   AttendanceSession copyWith({
     int? id,
-    int? subjectId,
     int? teacherId,
     String? sessionDate,
     String? startTime,
@@ -1775,7 +1797,6 @@ class AttendanceSession extends DataClass
     DateTime? createdAt,
   }) => AttendanceSession(
     id: id ?? this.id,
-    subjectId: subjectId ?? this.subjectId,
     teacherId: teacherId ?? this.teacherId,
     sessionDate: sessionDate ?? this.sessionDate,
     startTime: startTime ?? this.startTime,
@@ -1787,7 +1808,6 @@ class AttendanceSession extends DataClass
   AttendanceSession copyWithCompanion(AttendanceSessionsCompanion data) {
     return AttendanceSession(
       id: data.id.present ? data.id.value : this.id,
-      subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
       teacherId: data.teacherId.present ? data.teacherId.value : this.teacherId,
       sessionDate: data.sessionDate.present
           ? data.sessionDate.value
@@ -1804,7 +1824,6 @@ class AttendanceSession extends DataClass
   String toString() {
     return (StringBuffer('AttendanceSession(')
           ..write('id: $id, ')
-          ..write('subjectId: $subjectId, ')
           ..write('teacherId: $teacherId, ')
           ..write('sessionDate: $sessionDate, ')
           ..write('startTime: $startTime, ')
@@ -1819,7 +1838,6 @@ class AttendanceSession extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
-    subjectId,
     teacherId,
     sessionDate,
     startTime,
@@ -1833,7 +1851,6 @@ class AttendanceSession extends DataClass
       identical(this, other) ||
       (other is AttendanceSession &&
           other.id == this.id &&
-          other.subjectId == this.subjectId &&
           other.teacherId == this.teacherId &&
           other.sessionDate == this.sessionDate &&
           other.startTime == this.startTime &&
@@ -1845,7 +1862,6 @@ class AttendanceSession extends DataClass
 
 class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
   final Value<int> id;
-  final Value<int> subjectId;
   final Value<int> teacherId;
   final Value<String> sessionDate;
   final Value<String> startTime;
@@ -1855,7 +1871,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
   final Value<DateTime> createdAt;
   const AttendanceSessionsCompanion({
     this.id = const Value.absent(),
-    this.subjectId = const Value.absent(),
     this.teacherId = const Value.absent(),
     this.sessionDate = const Value.absent(),
     this.startTime = const Value.absent(),
@@ -1866,7 +1881,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
   });
   AttendanceSessionsCompanion.insert({
     this.id = const Value.absent(),
-    required int subjectId,
     required int teacherId,
     required String sessionDate,
     required String startTime,
@@ -1874,13 +1888,11 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
     this.status = const Value.absent(),
     this.location = const Value.absent(),
     this.createdAt = const Value.absent(),
-  }) : subjectId = Value(subjectId),
-       teacherId = Value(teacherId),
+  }) : teacherId = Value(teacherId),
        sessionDate = Value(sessionDate),
        startTime = Value(startTime);
   static Insertable<AttendanceSession> custom({
     Expression<int>? id,
-    Expression<int>? subjectId,
     Expression<int>? teacherId,
     Expression<String>? sessionDate,
     Expression<String>? startTime,
@@ -1891,7 +1903,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (subjectId != null) 'subject_id': subjectId,
       if (teacherId != null) 'teacher_id': teacherId,
       if (sessionDate != null) 'session_date': sessionDate,
       if (startTime != null) 'start_time': startTime,
@@ -1904,7 +1915,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
 
   AttendanceSessionsCompanion copyWith({
     Value<int>? id,
-    Value<int>? subjectId,
     Value<int>? teacherId,
     Value<String>? sessionDate,
     Value<String>? startTime,
@@ -1915,7 +1925,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
   }) {
     return AttendanceSessionsCompanion(
       id: id ?? this.id,
-      subjectId: subjectId ?? this.subjectId,
       teacherId: teacherId ?? this.teacherId,
       sessionDate: sessionDate ?? this.sessionDate,
       startTime: startTime ?? this.startTime,
@@ -1931,9 +1940,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
-    }
-    if (subjectId.present) {
-      map['subject_id'] = Variable<int>(subjectId.value);
     }
     if (teacherId.present) {
       map['teacher_id'] = Variable<int>(teacherId.value);
@@ -1963,7 +1969,6 @@ class AttendanceSessionsCompanion extends UpdateCompanion<AttendanceSession> {
   String toString() {
     return (StringBuffer('AttendanceSessionsCompanion(')
           ..write('id: $id, ')
-          ..write('subjectId: $subjectId, ')
           ..write('teacherId: $teacherId, ')
           ..write('sessionDate: $sessionDate, ')
           ..write('startTime: $startTime, ')
@@ -1993,20 +1998,6 @@ class $AttendanceRecordsTable extends AttendanceRecords
     requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
-    ),
-  );
-  static const VerificationMeta _sessionIdMeta = const VerificationMeta(
-    'sessionId',
-  );
-  @override
-  late final GeneratedColumn<int> sessionId = GeneratedColumn<int>(
-    'session_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES attendance_sessions (id)',
     ),
   );
   static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
@@ -2084,10 +2075,20 @@ class $AttendanceRecordsTable extends AttendanceRecords
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _markedDateMeta = const VerificationMeta(
+    'markedDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> markedDate = GeneratedColumn<DateTime>(
+    'marked_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
-    sessionId,
     userId,
     role,
     status,
@@ -2095,6 +2096,7 @@ class $AttendanceRecordsTable extends AttendanceRecords
     similarityScore,
     markedAt,
     createdAt,
+    markedDate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2110,14 +2112,6 @@ class $AttendanceRecordsTable extends AttendanceRecords
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('session_id')) {
-      context.handle(
-        _sessionIdMeta,
-        sessionId.isAcceptableOrUnknown(data['session_id']!, _sessionIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sessionIdMeta);
     }
     if (data.containsKey('user_id')) {
       context.handle(
@@ -2170,6 +2164,14 @@ class $AttendanceRecordsTable extends AttendanceRecords
         createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
       );
     }
+    if (data.containsKey('marked_date')) {
+      context.handle(
+        _markedDateMeta,
+        markedDate.isAcceptableOrUnknown(data['marked_date']!, _markedDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_markedDateMeta);
+    }
     return context;
   }
 
@@ -2182,10 +2184,6 @@ class $AttendanceRecordsTable extends AttendanceRecords
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}id'],
-      )!,
-      sessionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}session_id'],
       )!,
       userId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -2215,6 +2213,10 @@ class $AttendanceRecordsTable extends AttendanceRecords
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      markedDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}marked_date'],
+      )!,
     );
   }
 
@@ -2227,7 +2229,6 @@ class $AttendanceRecordsTable extends AttendanceRecords
 class AttendanceRecord extends DataClass
     implements Insertable<AttendanceRecord> {
   final int id;
-  final int sessionId;
   final int userId;
   final String role;
   final String status;
@@ -2235,9 +2236,9 @@ class AttendanceRecord extends DataClass
   final double? similarityScore;
   final String markedAt;
   final DateTime createdAt;
+  final DateTime markedDate;
   const AttendanceRecord({
     required this.id,
-    required this.sessionId,
     required this.userId,
     required this.role,
     required this.status,
@@ -2245,12 +2246,12 @@ class AttendanceRecord extends DataClass
     this.similarityScore,
     required this.markedAt,
     required this.createdAt,
+    required this.markedDate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['session_id'] = Variable<int>(sessionId);
     map['user_id'] = Variable<int>(userId);
     map['role'] = Variable<String>(role);
     map['status'] = Variable<String>(status);
@@ -2260,13 +2261,13 @@ class AttendanceRecord extends DataClass
     }
     map['marked_at'] = Variable<String>(markedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['marked_date'] = Variable<DateTime>(markedDate);
     return map;
   }
 
   AttendanceRecordsCompanion toCompanion(bool nullToAbsent) {
     return AttendanceRecordsCompanion(
       id: Value(id),
-      sessionId: Value(sessionId),
       userId: Value(userId),
       role: Value(role),
       status: Value(status),
@@ -2276,6 +2277,7 @@ class AttendanceRecord extends DataClass
           : Value(similarityScore),
       markedAt: Value(markedAt),
       createdAt: Value(createdAt),
+      markedDate: Value(markedDate),
     );
   }
 
@@ -2286,7 +2288,6 @@ class AttendanceRecord extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AttendanceRecord(
       id: serializer.fromJson<int>(json['id']),
-      sessionId: serializer.fromJson<int>(json['sessionId']),
       userId: serializer.fromJson<int>(json['userId']),
       role: serializer.fromJson<String>(json['role']),
       status: serializer.fromJson<String>(json['status']),
@@ -2294,6 +2295,7 @@ class AttendanceRecord extends DataClass
       similarityScore: serializer.fromJson<double?>(json['similarityScore']),
       markedAt: serializer.fromJson<String>(json['markedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      markedDate: serializer.fromJson<DateTime>(json['markedDate']),
     );
   }
   @override
@@ -2301,7 +2303,6 @@ class AttendanceRecord extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'sessionId': serializer.toJson<int>(sessionId),
       'userId': serializer.toJson<int>(userId),
       'role': serializer.toJson<String>(role),
       'status': serializer.toJson<String>(status),
@@ -2309,12 +2310,12 @@ class AttendanceRecord extends DataClass
       'similarityScore': serializer.toJson<double?>(similarityScore),
       'markedAt': serializer.toJson<String>(markedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'markedDate': serializer.toJson<DateTime>(markedDate),
     };
   }
 
   AttendanceRecord copyWith({
     int? id,
-    int? sessionId,
     int? userId,
     String? role,
     String? status,
@@ -2322,9 +2323,9 @@ class AttendanceRecord extends DataClass
     Value<double?> similarityScore = const Value.absent(),
     String? markedAt,
     DateTime? createdAt,
+    DateTime? markedDate,
   }) => AttendanceRecord(
     id: id ?? this.id,
-    sessionId: sessionId ?? this.sessionId,
     userId: userId ?? this.userId,
     role: role ?? this.role,
     status: status ?? this.status,
@@ -2334,11 +2335,11 @@ class AttendanceRecord extends DataClass
         : this.similarityScore,
     markedAt: markedAt ?? this.markedAt,
     createdAt: createdAt ?? this.createdAt,
+    markedDate: markedDate ?? this.markedDate,
   );
   AttendanceRecord copyWithCompanion(AttendanceRecordsCompanion data) {
     return AttendanceRecord(
       id: data.id.present ? data.id.value : this.id,
-      sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
       userId: data.userId.present ? data.userId.value : this.userId,
       role: data.role.present ? data.role.value : this.role,
       status: data.status.present ? data.status.value : this.status,
@@ -2348,6 +2349,9 @@ class AttendanceRecord extends DataClass
           : this.similarityScore,
       markedAt: data.markedAt.present ? data.markedAt.value : this.markedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      markedDate: data.markedDate.present
+          ? data.markedDate.value
+          : this.markedDate,
     );
   }
 
@@ -2355,14 +2359,14 @@ class AttendanceRecord extends DataClass
   String toString() {
     return (StringBuffer('AttendanceRecord(')
           ..write('id: $id, ')
-          ..write('sessionId: $sessionId, ')
           ..write('userId: $userId, ')
           ..write('role: $role, ')
           ..write('status: $status, ')
           ..write('method: $method, ')
           ..write('similarityScore: $similarityScore, ')
           ..write('markedAt: $markedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('markedDate: $markedDate')
           ..write(')'))
         .toString();
   }
@@ -2370,7 +2374,6 @@ class AttendanceRecord extends DataClass
   @override
   int get hashCode => Object.hash(
     id,
-    sessionId,
     userId,
     role,
     status,
@@ -2378,25 +2381,25 @@ class AttendanceRecord extends DataClass
     similarityScore,
     markedAt,
     createdAt,
+    markedDate,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is AttendanceRecord &&
           other.id == this.id &&
-          other.sessionId == this.sessionId &&
           other.userId == this.userId &&
           other.role == this.role &&
           other.status == this.status &&
           other.method == this.method &&
           other.similarityScore == this.similarityScore &&
           other.markedAt == this.markedAt &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.markedDate == this.markedDate);
 }
 
 class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
   final Value<int> id;
-  final Value<int> sessionId;
   final Value<int> userId;
   final Value<String> role;
   final Value<String> status;
@@ -2404,9 +2407,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
   final Value<double?> similarityScore;
   final Value<String> markedAt;
   final Value<DateTime> createdAt;
+  final Value<DateTime> markedDate;
   const AttendanceRecordsCompanion({
     this.id = const Value.absent(),
-    this.sessionId = const Value.absent(),
     this.userId = const Value.absent(),
     this.role = const Value.absent(),
     this.status = const Value.absent(),
@@ -2414,10 +2417,10 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     this.similarityScore = const Value.absent(),
     this.markedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.markedDate = const Value.absent(),
   });
   AttendanceRecordsCompanion.insert({
     this.id = const Value.absent(),
-    required int sessionId,
     required int userId,
     required String role,
     this.status = const Value.absent(),
@@ -2425,13 +2428,13 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     this.similarityScore = const Value.absent(),
     required String markedAt,
     this.createdAt = const Value.absent(),
-  }) : sessionId = Value(sessionId),
-       userId = Value(userId),
+    required DateTime markedDate,
+  }) : userId = Value(userId),
        role = Value(role),
-       markedAt = Value(markedAt);
+       markedAt = Value(markedAt),
+       markedDate = Value(markedDate);
   static Insertable<AttendanceRecord> custom({
     Expression<int>? id,
-    Expression<int>? sessionId,
     Expression<int>? userId,
     Expression<String>? role,
     Expression<String>? status,
@@ -2439,10 +2442,10 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     Expression<double>? similarityScore,
     Expression<String>? markedAt,
     Expression<DateTime>? createdAt,
+    Expression<DateTime>? markedDate,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (sessionId != null) 'session_id': sessionId,
       if (userId != null) 'user_id': userId,
       if (role != null) 'role': role,
       if (status != null) 'status': status,
@@ -2450,12 +2453,12 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
       if (similarityScore != null) 'similarity_score': similarityScore,
       if (markedAt != null) 'marked_at': markedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (markedDate != null) 'marked_date': markedDate,
     });
   }
 
   AttendanceRecordsCompanion copyWith({
     Value<int>? id,
-    Value<int>? sessionId,
     Value<int>? userId,
     Value<String>? role,
     Value<String>? status,
@@ -2463,10 +2466,10 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     Value<double?>? similarityScore,
     Value<String>? markedAt,
     Value<DateTime>? createdAt,
+    Value<DateTime>? markedDate,
   }) {
     return AttendanceRecordsCompanion(
       id: id ?? this.id,
-      sessionId: sessionId ?? this.sessionId,
       userId: userId ?? this.userId,
       role: role ?? this.role,
       status: status ?? this.status,
@@ -2474,6 +2477,7 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
       similarityScore: similarityScore ?? this.similarityScore,
       markedAt: markedAt ?? this.markedAt,
       createdAt: createdAt ?? this.createdAt,
+      markedDate: markedDate ?? this.markedDate,
     );
   }
 
@@ -2482,9 +2486,6 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
-    }
-    if (sessionId.present) {
-      map['session_id'] = Variable<int>(sessionId.value);
     }
     if (userId.present) {
       map['user_id'] = Variable<int>(userId.value);
@@ -2507,6 +2508,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (markedDate.present) {
+      map['marked_date'] = Variable<DateTime>(markedDate.value);
+    }
     return map;
   }
 
@@ -2514,14 +2518,14 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
   String toString() {
     return (StringBuffer('AttendanceRecordsCompanion(')
           ..write('id: $id, ')
-          ..write('sessionId: $sessionId, ')
           ..write('userId: $userId, ')
           ..write('role: $role, ')
           ..write('status: $status, ')
           ..write('method: $method, ')
           ..write('similarityScore: $similarityScore, ')
           ..write('markedAt: $markedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('markedDate: $markedDate')
           ..write(')'))
         .toString();
   }
@@ -3026,6 +3030,7 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<String?> department,
       Value<String?> phone,
       Value<String?> embedding,
+      Value<String?> faceImagePath,
       Value<bool> isFaceRegistered,
       Value<DateTime> createdAt,
     });
@@ -3041,6 +3046,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<String?> department,
       Value<String?> phone,
       Value<String?> embedding,
+      Value<String?> faceImagePath,
       Value<bool> isFaceRegistered,
       Value<DateTime> createdAt,
     });
@@ -3209,6 +3215,11 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get embedding => $composableBuilder(
     column: $table.embedding,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get faceImagePath => $composableBuilder(
+    column: $table.faceImagePath,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3407,6 +3418,11 @@ class $$UsersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get faceImagePath => $composableBuilder(
+    column: $table.faceImagePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isFaceRegistered => $composableBuilder(
     column: $table.isFaceRegistered,
     builder: (column) => ColumnOrderings(column),
@@ -3462,6 +3478,11 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<String> get embedding =>
       $composableBuilder(column: $table.embedding, builder: (column) => column);
+
+  GeneratedColumn<String> get faceImagePath => $composableBuilder(
+    column: $table.faceImagePath,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isFaceRegistered => $composableBuilder(
     column: $table.isFaceRegistered,
@@ -3643,6 +3664,7 @@ class $$UsersTableTableManager
                 Value<String?> department = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String?> embedding = const Value.absent(),
+                Value<String?> faceImagePath = const Value.absent(),
                 Value<bool> isFaceRegistered = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => UsersCompanion(
@@ -3656,6 +3678,7 @@ class $$UsersTableTableManager
                 department: department,
                 phone: phone,
                 embedding: embedding,
+                faceImagePath: faceImagePath,
                 isFaceRegistered: isFaceRegistered,
                 createdAt: createdAt,
               ),
@@ -3671,6 +3694,7 @@ class $$UsersTableTableManager
                 Value<String?> department = const Value.absent(),
                 Value<String?> phone = const Value.absent(),
                 Value<String?> embedding = const Value.absent(),
+                Value<String?> faceImagePath = const Value.absent(),
                 Value<bool> isFaceRegistered = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
               }) => UsersCompanion.insert(
@@ -3684,6 +3708,7 @@ class $$UsersTableTableManager
                 department: department,
                 phone: phone,
                 embedding: embedding,
+                faceImagePath: faceImagePath,
                 isFaceRegistered: isFaceRegistered,
                 createdAt: createdAt,
               ),
@@ -3896,30 +3921,6 @@ final class $$SubjectsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
-
-  static MultiTypedResultKey<$AttendanceSessionsTable, List<AttendanceSession>>
-  _attendanceSessionsRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.attendanceSessions,
-        aliasName: $_aliasNameGenerator(
-          db.subjects.id,
-          db.attendanceSessions.subjectId,
-        ),
-      );
-
-  $$AttendanceSessionsTableProcessedTableManager get attendanceSessionsRefs {
-    final manager = $$AttendanceSessionsTableTableManager(
-      $_db,
-      $_db.attendanceSessions,
-    ).filter((f) => f.subjectId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _attendanceSessionsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
 }
 
 class $$SubjectsTableFilterComposer
@@ -3995,31 +3996,6 @@ class $$SubjectsTableFilterComposer
           }) => $$EnrollmentsTableFilterComposer(
             $db: $db,
             $table: $db.enrollments,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
-  Expression<bool> attendanceSessionsRefs(
-    Expression<bool> Function($$AttendanceSessionsTableFilterComposer f) f,
-  ) {
-    final $$AttendanceSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.attendanceSessions,
-      getReferencedColumn: (t) => t.subjectId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AttendanceSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.attendanceSessions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4161,32 +4137,6 @@ class $$SubjectsTableAnnotationComposer
     );
     return f(composer);
   }
-
-  Expression<T> attendanceSessionsRefs<T extends Object>(
-    Expression<T> Function($$AttendanceSessionsTableAnnotationComposer a) f,
-  ) {
-    final $$AttendanceSessionsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.attendanceSessions,
-          getReferencedColumn: (t) => t.subjectId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$AttendanceSessionsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.attendanceSessions,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
-  }
 }
 
 class $$SubjectsTableTableManager
@@ -4202,11 +4152,7 @@ class $$SubjectsTableTableManager
           $$SubjectsTableUpdateCompanionBuilder,
           (Subject, $$SubjectsTableReferences),
           Subject,
-          PrefetchHooks Function({
-            bool teacherId,
-            bool enrollmentsRefs,
-            bool attendanceSessionsRefs,
-          })
+          PrefetchHooks Function({bool teacherId, bool enrollmentsRefs})
         > {
   $$SubjectsTableTableManager(_$AppDatabase db, $SubjectsTable table)
     : super(
@@ -4260,16 +4206,11 @@ class $$SubjectsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({
-                teacherId = false,
-                enrollmentsRefs = false,
-                attendanceSessionsRefs = false,
-              }) {
+              ({teacherId = false, enrollmentsRefs = false}) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (enrollmentsRefs) db.enrollments,
-                    if (attendanceSessionsRefs) db.attendanceSessions,
                   ],
                   addJoins:
                       <
@@ -4326,27 +4267,6 @@ class $$SubjectsTableTableManager
                               ),
                           typedResults: items,
                         ),
-                      if (attendanceSessionsRefs)
-                        await $_getPrefetchedData<
-                          Subject,
-                          $SubjectsTable,
-                          AttendanceSession
-                        >(
-                          currentTable: table,
-                          referencedTable: $$SubjectsTableReferences
-                              ._attendanceSessionsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$SubjectsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).attendanceSessionsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.subjectId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
                     ];
                   },
                 );
@@ -4367,11 +4287,7 @@ typedef $$SubjectsTableProcessedTableManager =
       $$SubjectsTableUpdateCompanionBuilder,
       (Subject, $$SubjectsTableReferences),
       Subject,
-      PrefetchHooks Function({
-        bool teacherId,
-        bool enrollmentsRefs,
-        bool attendanceSessionsRefs,
-      })
+      PrefetchHooks Function({bool teacherId, bool enrollmentsRefs})
     >;
 typedef $$EnrollmentsTableCreateCompanionBuilder =
     EnrollmentsCompanion Function({
@@ -4759,7 +4675,6 @@ typedef $$EnrollmentsTableProcessedTableManager =
 typedef $$AttendanceSessionsTableCreateCompanionBuilder =
     AttendanceSessionsCompanion Function({
       Value<int> id,
-      required int subjectId,
       required int teacherId,
       required String sessionDate,
       required String startTime,
@@ -4771,7 +4686,6 @@ typedef $$AttendanceSessionsTableCreateCompanionBuilder =
 typedef $$AttendanceSessionsTableUpdateCompanionBuilder =
     AttendanceSessionsCompanion Function({
       Value<int> id,
-      Value<int> subjectId,
       Value<int> teacherId,
       Value<String> sessionDate,
       Value<String> startTime,
@@ -4794,25 +4708,6 @@ final class $$AttendanceSessionsTableReferences
     super.$_typedResult,
   );
 
-  static $SubjectsTable _subjectIdTable(_$AppDatabase db) =>
-      db.subjects.createAlias(
-        $_aliasNameGenerator(db.attendanceSessions.subjectId, db.subjects.id),
-      );
-
-  $$SubjectsTableProcessedTableManager get subjectId {
-    final $_column = $_itemColumn<int>('subject_id')!;
-
-    final manager = $$SubjectsTableTableManager(
-      $_db,
-      $_db.subjects,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_subjectIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
   static $UsersTable _teacherIdTable(_$AppDatabase db) => db.users.createAlias(
     $_aliasNameGenerator(db.attendanceSessions.teacherId, db.users.id),
   );
@@ -4828,30 +4723,6 @@ final class $$AttendanceSessionsTableReferences
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$AttendanceRecordsTable, List<AttendanceRecord>>
-  _attendanceRecordsRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.attendanceRecords,
-        aliasName: $_aliasNameGenerator(
-          db.attendanceSessions.id,
-          db.attendanceRecords.sessionId,
-        ),
-      );
-
-  $$AttendanceRecordsTableProcessedTableManager get attendanceRecordsRefs {
-    final manager = $$AttendanceRecordsTableTableManager(
-      $_db,
-      $_db.attendanceRecords,
-    ).filter((f) => f.sessionId.id.sqlEquals($_itemColumn<int>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _attendanceRecordsRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
     );
   }
 
@@ -4922,29 +4793,6 @@ class $$AttendanceSessionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$SubjectsTableFilterComposer get subjectId {
-    final $$SubjectsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.subjectId,
-      referencedTable: $db.subjects,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SubjectsTableFilterComposer(
-            $db: $db,
-            $table: $db.subjects,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   $$UsersTableFilterComposer get teacherId {
     final $$UsersTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4966,31 +4814,6 @@ class $$AttendanceSessionsTableFilterComposer
           ),
     );
     return composer;
-  }
-
-  Expression<bool> attendanceRecordsRefs(
-    Expression<bool> Function($$AttendanceRecordsTableFilterComposer f) f,
-  ) {
-    final $$AttendanceRecordsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.attendanceRecords,
-      getReferencedColumn: (t) => t.sessionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AttendanceRecordsTableFilterComposer(
-            $db: $db,
-            $table: $db.attendanceRecords,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
   }
 
   Expression<bool> faceLogsRefs(
@@ -5063,29 +4886,6 @@ class $$AttendanceSessionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$SubjectsTableOrderingComposer get subjectId {
-    final $$SubjectsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.subjectId,
-      referencedTable: $db.subjects,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SubjectsTableOrderingComposer(
-            $db: $db,
-            $table: $db.subjects,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   $$UsersTableOrderingComposer get teacherId {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -5142,29 +4942,6 @@ class $$AttendanceSessionsTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  $$SubjectsTableAnnotationComposer get subjectId {
-    final $$SubjectsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.subjectId,
-      referencedTable: $db.subjects,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$SubjectsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.subjects,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
   $$UsersTableAnnotationComposer get teacherId {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
       composer: this,
@@ -5186,32 +4963,6 @@ class $$AttendanceSessionsTableAnnotationComposer
           ),
     );
     return composer;
-  }
-
-  Expression<T> attendanceRecordsRefs<T extends Object>(
-    Expression<T> Function($$AttendanceRecordsTableAnnotationComposer a) f,
-  ) {
-    final $$AttendanceRecordsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.id,
-          referencedTable: $db.attendanceRecords,
-          getReferencedColumn: (t) => t.sessionId,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$AttendanceRecordsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.attendanceRecords,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return f(composer);
   }
 
   Expression<T> faceLogsRefs<T extends Object>(
@@ -5253,12 +5004,7 @@ class $$AttendanceSessionsTableTableManager
           $$AttendanceSessionsTableUpdateCompanionBuilder,
           (AttendanceSession, $$AttendanceSessionsTableReferences),
           AttendanceSession,
-          PrefetchHooks Function({
-            bool subjectId,
-            bool teacherId,
-            bool attendanceRecordsRefs,
-            bool faceLogsRefs,
-          })
+          PrefetchHooks Function({bool teacherId, bool faceLogsRefs})
         > {
   $$AttendanceSessionsTableTableManager(
     _$AppDatabase db,
@@ -5279,7 +5025,6 @@ class $$AttendanceSessionsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> subjectId = const Value.absent(),
                 Value<int> teacherId = const Value.absent(),
                 Value<String> sessionDate = const Value.absent(),
                 Value<String> startTime = const Value.absent(),
@@ -5289,7 +5034,6 @@ class $$AttendanceSessionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
               }) => AttendanceSessionsCompanion(
                 id: id,
-                subjectId: subjectId,
                 teacherId: teacherId,
                 sessionDate: sessionDate,
                 startTime: startTime,
@@ -5301,7 +5045,6 @@ class $$AttendanceSessionsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int subjectId,
                 required int teacherId,
                 required String sessionDate,
                 required String startTime,
@@ -5311,7 +5054,6 @@ class $$AttendanceSessionsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
               }) => AttendanceSessionsCompanion.insert(
                 id: id,
-                subjectId: subjectId,
                 teacherId: teacherId,
                 sessionDate: sessionDate,
                 startTime: startTime,
@@ -5328,116 +5070,69 @@ class $$AttendanceSessionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback:
-              ({
-                subjectId = false,
-                teacherId = false,
-                attendanceRecordsRefs = false,
-                faceLogsRefs = false,
-              }) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [
-                    if (attendanceRecordsRefs) db.attendanceRecords,
-                    if (faceLogsRefs) db.faceLogs,
-                  ],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (subjectId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.subjectId,
-                                    referencedTable:
-                                        $$AttendanceSessionsTableReferences
-                                            ._subjectIdTable(db),
-                                    referencedColumn:
-                                        $$AttendanceSessionsTableReferences
-                                            ._subjectIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
-                        if (teacherId) {
-                          state =
-                              state.withJoin(
-                                    currentTable: table,
-                                    currentColumn: table.teacherId,
-                                    referencedTable:
-                                        $$AttendanceSessionsTableReferences
-                                            ._teacherIdTable(db),
-                                    referencedColumn:
-                                        $$AttendanceSessionsTableReferences
-                                            ._teacherIdTable(db)
-                                            .id,
-                                  )
-                                  as T;
-                        }
+          prefetchHooksCallback: ({teacherId = false, faceLogsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (faceLogsRefs) db.faceLogs],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (teacherId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.teacherId,
+                                referencedTable:
+                                    $$AttendanceSessionsTableReferences
+                                        ._teacherIdTable(db),
+                                referencedColumn:
+                                    $$AttendanceSessionsTableReferences
+                                        ._teacherIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
 
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (attendanceRecordsRefs)
-                        await $_getPrefetchedData<
-                          AttendanceSession,
-                          $AttendanceSessionsTable,
-                          AttendanceRecord
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AttendanceSessionsTableReferences
-                              ._attendanceRecordsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AttendanceSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).attendanceRecordsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                      if (faceLogsRefs)
-                        await $_getPrefetchedData<
-                          AttendanceSession,
-                          $AttendanceSessionsTable,
-                          FaceLog
-                        >(
-                          currentTable: table,
-                          referencedTable: $$AttendanceSessionsTableReferences
-                              ._faceLogsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$AttendanceSessionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).faceLogsRefs,
-                          referencedItemsForCurrentItem:
-                              (item, referencedItems) => referencedItems.where(
-                                (e) => e.sessionId == item.id,
-                              ),
-                          typedResults: items,
-                        ),
-                    ];
+                    return state;
                   },
-                );
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (faceLogsRefs)
+                    await $_getPrefetchedData<
+                      AttendanceSession,
+                      $AttendanceSessionsTable,
+                      FaceLog
+                    >(
+                      currentTable: table,
+                      referencedTable: $$AttendanceSessionsTableReferences
+                          ._faceLogsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$AttendanceSessionsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).faceLogsRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.sessionId == item.id),
+                      typedResults: items,
+                    ),
+                ];
               },
+            );
+          },
         ),
       );
 }
@@ -5454,17 +5149,11 @@ typedef $$AttendanceSessionsTableProcessedTableManager =
       $$AttendanceSessionsTableUpdateCompanionBuilder,
       (AttendanceSession, $$AttendanceSessionsTableReferences),
       AttendanceSession,
-      PrefetchHooks Function({
-        bool subjectId,
-        bool teacherId,
-        bool attendanceRecordsRefs,
-        bool faceLogsRefs,
-      })
+      PrefetchHooks Function({bool teacherId, bool faceLogsRefs})
     >;
 typedef $$AttendanceRecordsTableCreateCompanionBuilder =
     AttendanceRecordsCompanion Function({
       Value<int> id,
-      required int sessionId,
       required int userId,
       required String role,
       Value<String> status,
@@ -5472,11 +5161,11 @@ typedef $$AttendanceRecordsTableCreateCompanionBuilder =
       Value<double?> similarityScore,
       required String markedAt,
       Value<DateTime> createdAt,
+      required DateTime markedDate,
     });
 typedef $$AttendanceRecordsTableUpdateCompanionBuilder =
     AttendanceRecordsCompanion Function({
       Value<int> id,
-      Value<int> sessionId,
       Value<int> userId,
       Value<String> role,
       Value<String> status,
@@ -5484,6 +5173,7 @@ typedef $$AttendanceRecordsTableUpdateCompanionBuilder =
       Value<double?> similarityScore,
       Value<String> markedAt,
       Value<DateTime> createdAt,
+      Value<DateTime> markedDate,
     });
 
 final class $$AttendanceRecordsTableReferences
@@ -5498,28 +5188,6 @@ final class $$AttendanceRecordsTableReferences
     super.$_table,
     super.$_typedResult,
   );
-
-  static $AttendanceSessionsTable _sessionIdTable(_$AppDatabase db) =>
-      db.attendanceSessions.createAlias(
-        $_aliasNameGenerator(
-          db.attendanceRecords.sessionId,
-          db.attendanceSessions.id,
-        ),
-      );
-
-  $$AttendanceSessionsTableProcessedTableManager get sessionId {
-    final $_column = $_itemColumn<int>('session_id')!;
-
-    final manager = $$AttendanceSessionsTableTableManager(
-      $_db,
-      $_db.attendanceSessions,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_sessionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
 
   static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
     $_aliasNameGenerator(db.attendanceRecords.userId, db.users.id),
@@ -5584,28 +5252,10 @@ class $$AttendanceRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  $$AttendanceSessionsTableFilterComposer get sessionId {
-    final $$AttendanceSessionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionId,
-      referencedTable: $db.attendanceSessions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AttendanceSessionsTableFilterComposer(
-            $db: $db,
-            $table: $db.attendanceSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnFilters<DateTime> get markedDate => $composableBuilder(
+    column: $table.markedDate,
+    builder: (column) => ColumnFilters(column),
+  );
 
   $$UsersTableFilterComposer get userId {
     final $$UsersTableFilterComposer composer = $composerBuilder(
@@ -5675,28 +5325,10 @@ class $$AttendanceRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  $$AttendanceSessionsTableOrderingComposer get sessionId {
-    final $$AttendanceSessionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.sessionId,
-      referencedTable: $db.attendanceSessions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$AttendanceSessionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.attendanceSessions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
+  ColumnOrderings<DateTime> get markedDate => $composableBuilder(
+    column: $table.markedDate,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   $$UsersTableOrderingComposer get userId {
     final $$UsersTableOrderingComposer composer = $composerBuilder(
@@ -5754,29 +5386,10 @@ class $$AttendanceRecordsTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  $$AttendanceSessionsTableAnnotationComposer get sessionId {
-    final $$AttendanceSessionsTableAnnotationComposer composer =
-        $composerBuilder(
-          composer: this,
-          getCurrentColumn: (t) => t.sessionId,
-          referencedTable: $db.attendanceSessions,
-          getReferencedColumn: (t) => t.id,
-          builder:
-              (
-                joinBuilder, {
-                $addJoinBuilderToRootComposer,
-                $removeJoinBuilderFromRootComposer,
-              }) => $$AttendanceSessionsTableAnnotationComposer(
-                $db: $db,
-                $table: $db.attendanceSessions,
-                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-                joinBuilder: joinBuilder,
-                $removeJoinBuilderFromRootComposer:
-                    $removeJoinBuilderFromRootComposer,
-              ),
-        );
-    return composer;
-  }
+  GeneratedColumn<DateTime> get markedDate => $composableBuilder(
+    column: $table.markedDate,
+    builder: (column) => column,
+  );
 
   $$UsersTableAnnotationComposer get userId {
     final $$UsersTableAnnotationComposer composer = $composerBuilder(
@@ -5815,7 +5428,7 @@ class $$AttendanceRecordsTableTableManager
           $$AttendanceRecordsTableUpdateCompanionBuilder,
           (AttendanceRecord, $$AttendanceRecordsTableReferences),
           AttendanceRecord,
-          PrefetchHooks Function({bool sessionId, bool userId})
+          PrefetchHooks Function({bool userId})
         > {
   $$AttendanceRecordsTableTableManager(
     _$AppDatabase db,
@@ -5836,7 +5449,6 @@ class $$AttendanceRecordsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                Value<int> sessionId = const Value.absent(),
                 Value<int> userId = const Value.absent(),
                 Value<String> role = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -5844,9 +5456,9 @@ class $$AttendanceRecordsTableTableManager
                 Value<double?> similarityScore = const Value.absent(),
                 Value<String> markedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> markedDate = const Value.absent(),
               }) => AttendanceRecordsCompanion(
                 id: id,
-                sessionId: sessionId,
                 userId: userId,
                 role: role,
                 status: status,
@@ -5854,11 +5466,11 @@ class $$AttendanceRecordsTableTableManager
                 similarityScore: similarityScore,
                 markedAt: markedAt,
                 createdAt: createdAt,
+                markedDate: markedDate,
               ),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
-                required int sessionId,
                 required int userId,
                 required String role,
                 Value<String> status = const Value.absent(),
@@ -5866,9 +5478,9 @@ class $$AttendanceRecordsTableTableManager
                 Value<double?> similarityScore = const Value.absent(),
                 required String markedAt,
                 Value<DateTime> createdAt = const Value.absent(),
+                required DateTime markedDate,
               }) => AttendanceRecordsCompanion.insert(
                 id: id,
-                sessionId: sessionId,
                 userId: userId,
                 role: role,
                 status: status,
@@ -5876,6 +5488,7 @@ class $$AttendanceRecordsTableTableManager
                 similarityScore: similarityScore,
                 markedAt: markedAt,
                 createdAt: createdAt,
+                markedDate: markedDate,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -5885,7 +5498,7 @@ class $$AttendanceRecordsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({sessionId = false, userId = false}) {
+          prefetchHooksCallback: ({userId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -5905,21 +5518,6 @@ class $$AttendanceRecordsTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (sessionId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.sessionId,
-                                referencedTable:
-                                    $$AttendanceRecordsTableReferences
-                                        ._sessionIdTable(db),
-                                referencedColumn:
-                                    $$AttendanceRecordsTableReferences
-                                        ._sessionIdTable(db)
-                                        .id,
-                              )
-                              as T;
-                    }
                     if (userId) {
                       state =
                           state.withJoin(
@@ -5959,7 +5557,7 @@ typedef $$AttendanceRecordsTableProcessedTableManager =
       $$AttendanceRecordsTableUpdateCompanionBuilder,
       (AttendanceRecord, $$AttendanceRecordsTableReferences),
       AttendanceRecord,
-      PrefetchHooks Function({bool sessionId, bool userId})
+      PrefetchHooks Function({bool userId})
     >;
 typedef $$FaceLogsTableCreateCompanionBuilder =
     FaceLogsCompanion Function({

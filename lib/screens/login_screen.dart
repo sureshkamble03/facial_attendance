@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
     //await Future.delayed(const Duration(seconds: 2));
 
     setState(() => isLoading = false);
-    context.go('/attendance');
+    //context.go('/attendance');
     // context.read<AuthBloc>().add(
     //   LoginEvent(
     //     emailController.text,

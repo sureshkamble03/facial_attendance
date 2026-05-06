@@ -16,6 +16,7 @@ class Users extends Table {
   TextColumn get department => text().nullable()();
   TextColumn get phone      => text().nullable()();
   TextColumn get embedding  => text().nullable()(); // JSON string of 192 doubles
+  TextColumn get faceImagePath => text().nullable()();
   BoolColumn get isFaceRegistered => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -53,7 +54,7 @@ class Enrollments extends Table {
 // ─────────────────────────────────────────────────────────────────────────────
 class AttendanceSessions extends Table {
   IntColumn get id        => integer().autoIncrement()();
-  IntColumn get subjectId => integer().references(Subjects, #id)();
+  //IntColumn get subjectId => integer().references(Subjects, #id)();
   IntColumn get teacherId => integer().references(Users, #id)();
   TextColumn get sessionDate => text()(); // store as 'yyyy-MM-dd'
   TextColumn get startTime   => text()(); // store as 'HH:mm'
@@ -69,7 +70,6 @@ class AttendanceSessions extends Table {
 // ─────────────────────────────────────────────────────────────────────────────
 class AttendanceRecords extends Table {
   IntColumn get id        => integer().autoIncrement()();
-  IntColumn get sessionId => integer().references(AttendanceSessions, #id)();
   IntColumn get userId    => integer().references(Users, #id)();
   TextColumn get role     => text()(); // 'student' | 'teacher'
   TextColumn get status   => text().withDefault(const Constant('present'))();
@@ -79,11 +79,12 @@ class AttendanceRecords extends Table {
   RealColumn get similarityScore => real().nullable()(); // face match score
   TextColumn get markedAt => text()(); // 'HH:mm:ss'
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get markedDate => dateTime()();
 
   // One record per user per session
   @override
   List<Set<Column>> get uniqueWith => [
-    {sessionId, userId},
+    {userId},
   ];
 }
 
