@@ -30,7 +30,7 @@ class AttendanceService {
     }
 
     final embedding = await embeddingService.getEmbedding(cropped);
-    if (embedding.length != 192) {
+    if (embedding!.length != 192) {
       debugPrint('❌ Invalid embedding size');
       return false;
     }
@@ -68,7 +68,7 @@ class AttendanceService {
     if (cropped == null) return false;
 
     final newEmbedding = await embeddingService.getEmbedding(cropped);
-    final similarity = embeddingService.cosineSimilarity(newEmbedding, stored);
+    final similarity = embeddingService.cosineSimilarity(newEmbedding!, stored);
 
     debugPrint('📊 Similarity: $similarity');
 

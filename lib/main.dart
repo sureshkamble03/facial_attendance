@@ -9,6 +9,7 @@ import 'package:facial_attendance/core/local_storage.dart';
 import 'package:facial_attendance/screens/attendance_log.dart';
 import 'package:facial_attendance/screens/attendance_screen.dart';
 import 'package:facial_attendance/screens/camera_screen.dart';
+import 'package:facial_attendance/screens/group_attendance_screen.dart';
 import 'package:facial_attendance/screens/login_screen.dart';
 import 'package:facial_attendance/screens/new_attendance_screen.dart';
 import 'package:facial_attendance/screens/register_screen.dart';
@@ -85,6 +86,7 @@ class MyApp extends StatelessWidget {
           "/camera": (_) => CameraScreen(),
           "/userlist": (_) => UsersList(),
           "/markattendance": (_) => ScanCameraScreen(sessionId: 1, db: getIt<AppDatabase>(),),
+          "/mark_attendance_group": (_) => GroupScanCameraScreen(sessionId: 1, db: getIt<AppDatabase>(),),
           "/attendanceReport": (_) => AttendanceLogsScreen(db: getIt<AppDatabase>(),),
         },
       ),

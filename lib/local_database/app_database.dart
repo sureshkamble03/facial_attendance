@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:facial_attendance/core/user_with_embedding.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:image/src/image/image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../core/embedding_service.dart';
@@ -205,7 +208,7 @@ class AppDatabase extends _$AppDatabase {
 
       // ── Step 3: Get embedding ────────────────────────────────────────────
       final newEmbedding = await embeddingService.getEmbedding(cropped);
-      debugPrint('✅ New embedding length: ${newEmbedding.length}');
+      debugPrint('✅ New embedding length: ${newEmbedding!.length}');
 
       if (newEmbedding.length != 192) {
         return const FaceScanAttendanceResult(
@@ -450,6 +453,203 @@ class AppDatabase extends _$AppDatabase {
   //   }
   // }
 
+// ==================== MAIN METHOD ====================
+  Future<List<FaceScanAttendanceResult>> markMultipleAttendanceByFaceScan({
+    required String imagePath,
+    required FaceEmbeddingService embeddingService,
+    required FaceService faceService,
+    List<Face>? detectedFaces,
+    required int sessionId,
+  }) async {
+    final List<FaceScanAttendanceResult> results = [];
+
+    try {
+      List<Face> faces = detectedFaces ?? [];
+      if (faces.isEmpty) {
+        faces = await faceService.detectFaces(imagePath);
+      }
+
+      debugPrint('👥 Detected ${faces.length} face(s) in photo');
+
+      if (faces.isEmpty) {
+        return [FaceScanAttendanceResult(
+          success: false,
+          similarity: 0.0,
+          message: "No faces detected",
+        )];
+      }
+
+      final allUsers = await getAllUsersWithEmbeddings();
+
+      for (int i = 0; i < faces.length; i++) {
+        final face = faces[i];
+        debugPrint('🔄 Processing face ${i + 1}/${faces.length}');
+
+        final result = await _processSingleFace(
+          imagePath: imagePath,
+          face: face,
+          faceService: faceService,
+          embeddingService: embeddingService,
+          allUsers: allUsers,
+        );
+
+        results.add(result);   // ← Only add once
+
+        if (result.success && result.user != null) {
+          debugPrint('✅ MATCH: ${result.user!.name} (${result.similarity.toStringAsFixed(3)})');
+
+          await markAttendance(
+            AttendanceRecordsCompanion.insert(
+              userId: result.user!.id,
+              role: result.user!.role,
+              markedAt: DateTime.now().toIso8601String(),
+              markedDate: DateTime.now(),
+              method: const Value('face_group'),
+              status: const Value('present'),
+              similarityScore: Value(result.similarity),
+            ),
+          );
+        } else {
+          debugPrint('❌ No match for face ${i+1} | Best: ${result.similarity.toStringAsFixed(3)}');
+        }
+      }
+
+      return results;
+    } catch (e) {
+      debugPrint('❌ markMultipleAttendanceByFaceScan error: $e');
+      return [];
+    }
+  }
+
+// ==================== HELPER METHOD ====================
+  Future<FaceScanAttendanceResult> _processSingleFace({
+    required String imagePath,
+    required Face face,
+    required FaceService faceService,
+    required FaceEmbeddingService embeddingService,
+    required List<UserWithEmbedding> allUsers,
+  }) async {
+    try {
+      debugPrint('   ├─ Cropping face...');
+
+      // Crop face
+      final croppedImage = await faceService.cropFace(imagePath, face);
+      if (croppedImage == null) {
+        return FaceScanAttendanceResult(
+          success: false,
+          similarity: 0.0,
+          message: "Failed to crop face",
+        );
+      }
+
+      // Save cropped image temporarily
+      final tempPath = await faceService.saveCroppedFace(croppedImage, imagePath);
+      if (tempPath == null) {
+        return FaceScanAttendanceResult(
+          success: false,
+          similarity: 0.0,
+          message: "Failed to save cropped face",
+        );
+      }
+
+      debugPrint('   ├─ Generating embedding...');
+
+      // Get embedding for THIS face only
+      final embedding = await embeddingService.getEmbeddingFromPath(tempPath);
+      if (embedding == null || embedding.isEmpty) {
+        return FaceScanAttendanceResult(
+          success: false,
+          similarity: 0.0,
+          message: "Failed to generate embedding",
+        );
+      }
+
+      debugPrint('   ├─ Matching against ${allUsers.length} users...');
+
+      double bestSimilarity = 0.0;
+      User? matchedUser;
+
+      // Find best match for this specific face
+      for (final userWithEmb in allUsers) {
+        if (userWithEmb.embedding == null || userWithEmb.embedding!.isEmpty) continue;
+
+        final similarity = embeddingService.cosineSimilarity(
+          embedding,
+          userWithEmb.embedding!,
+        );
+
+        if (similarity > bestSimilarity) {
+          bestSimilarity = similarity;
+          matchedUser = userWithEmb.user;
+        }
+      }
+
+      const double threshold = 0.75;   // Lowered for testing
+
+      if (bestSimilarity >= threshold && matchedUser != null) {
+        debugPrint('   ✅ MATCH → ${matchedUser.name} | Similarity: ${bestSimilarity.toStringAsFixed(3)}');
+        return FaceScanAttendanceResult(
+          success: true,
+          user: matchedUser,
+          similarity: bestSimilarity,
+          message: "Attendance marked",
+        );
+      } else {
+        debugPrint('   ❌ No match | Best similarity: ${bestSimilarity.toStringAsFixed(3)}');
+        return FaceScanAttendanceResult(
+          success: false,
+          user: null,
+          similarity: bestSimilarity,
+          message: "Face not recognized",
+        );
+      }
+    } catch (e) {
+      debugPrint('   ❌ _processSingleFace error: $e');
+      return FaceScanAttendanceResult(
+        success: false,
+        similarity: 0.0,
+        message: "Processing error",
+      );
+    }
+  }
+  Future<List<UserWithEmbedding>> getAllUsersWithEmbeddings() async {
+    try {
+      final usersList = await select(users).get();
+
+      final List<UserWithEmbedding> result = [];
+
+      for (final user in usersList) {
+        final embedding = _parseEmbedding(user.embedding);
+        result.add(UserWithEmbedding(
+          user: user,
+          embedding: embedding,
+        ));
+      }
+
+      debugPrint('✅ Loaded ${result.length} users with embeddings');
+      return result;
+    } catch (e) {
+      debugPrint('❌ getAllUsersWithEmbeddings error: $e');
+      return [];
+    }
+  }
+  List<double>? _parseEmbedding(String? embeddingJson) {
+    if (embeddingJson == null || embeddingJson.isEmpty) return null;
+
+    try {
+      final list = embeddingJson
+          .replaceAll('[', '')
+          .replaceAll(']', '')
+          .split(',')
+          .map((e) => double.tryParse(e.trim()) ?? 0.0)
+          .toList();
+
+      return list;
+    } catch (e) {
+      debugPrint('❌ Failed to parse embedding: $e');
+      return null;
+    }
+  }
   // ── Subjects ──────────────────────────────────────────────────────────────
 
   Future<int> insertSubject(SubjectsCompanion subject) =>

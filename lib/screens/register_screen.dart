@@ -96,7 +96,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final embedding = await widget.embeddingService.getEmbedding(cropped);
 
-    if (embedding.length != 192) return;
+    if (embedding!.length != 192) return;
 
     // -------- SEND TO BLOC --------
     context.read<AuthBloc>().add(

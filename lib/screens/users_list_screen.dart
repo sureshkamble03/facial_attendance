@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:facial_attendance/screens/group_attendance_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/users_bloc.dart';
@@ -55,12 +56,152 @@ class _UsersListState extends State<UsersList> {
             );
            // Navigator.pushNamed(context, "/attendanceReport");
           }, icon: Icon(Icons.list)),
-          ElevatedButton(onPressed: () async {
-            // No userId needed — user is identified from face scan automatically
-            final result = await Navigator.push<FaceScanAttendanceResult>(
+          ElevatedButton(
+            onPressed: () async {
+              // Show dialog with two options
+              final String? choice = await showDialog<String>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Mark Attendance'),
+                  content: const Text('Choose attendance mode:'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, 'single'),
+                      child: const Text('Single Person'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, 'group'),
+                      child: const Text('Group Attendance'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (choice == null) return; // User cancelled
+
+              final db = getIt<AppDatabase>();
+
+              if (choice == 'single') {
+                // Navigate to Single Face Scan
+                final result = await Navigator.push<FaceScanAttendanceResult?>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ScanCameraScreen(
+                      sessionId: 1, // Replace with actual sessionId
+                      db: db,
+                    ),
+                  ),
+                );
+
+                if (!mounted || result == null) return;
+
+                if (result.success && result.user != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('✅ ${result.user!.name} marked present'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _refreshAttendanceList();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result.message),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                }
+              }
+              else if (choice == 'group') {
+                // Navigate to Group Scan
+                final rawResult = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => GroupScanCameraScreen(
+                      sessionId: 1, // Replace with actual sessionId
+                      db: db,
+                    ),
+                  ),
+                );
+
+                if (!mounted || rawResult == null) return;
+
+                if (rawResult is List<FaceScanAttendanceResult>) {
+                  final results = rawResult;
+                  final successCount = results.where((r) => r.success).length;
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '$successCount out of ${results.length} attendances marked successfully',
+                      ),
+                      backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
+                    ),
+                  );
+                  _refreshAttendanceList();
+                }
+              }
+            },
+            child: const Text('Mark Attendance'),
+          ),
+          /*ElevatedButton(onPressed: () async {
+
+            final dynamic rawResult = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ScanCameraScreen(
+                builder: (_) => GroupScanCameraScreen(
+                  sessionId: 1,   // or your sessionId
+                  db:getIt<AppDatabase>(),
+                ),
+              ),
+            );
+
+            if (rawResult != null) {
+              if (rawResult is List<FaceScanAttendanceResult>) {
+                final results = rawResult;
+                int successCount = results.where((r) => r.success).length;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '$successCount out of ${results.length} attendances marked successfully',
+                    ),
+                    backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
+                  ),
+                );
+
+                // Optional: Refresh attendance list
+                setState(() {});
+              }
+              else if (rawResult is FaceScanAttendanceResult) {
+                if (rawResult.success) {
+                  // result.user has full user data — name, email, role, rollNumber, dept
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('✅ ${rawResult.user?.name} marked present'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _refreshAttendanceList();
+                }
+              }
+            }
+
+          *//*  // No userId needed — user is identified from face scan automatically
+            final result = await Navigator.push<FaceScanAttendanceResult>(
+              context,
+              // MaterialPageRoute(
+              //   builder: (_) => ScanCameraScreen(
+              //     sessionId: 1,
+              //     db: getIt<AppDatabase>(),
+              //   ),
+              // ),
+              MaterialPageRoute(
+                builder: (_) => GroupScanCameraScreen(
                   sessionId: 1,
                   db: getIt<AppDatabase>(),
                 ),
@@ -68,18 +209,31 @@ class _UsersListState extends State<UsersList> {
             );
 
             if (!mounted || result == null) return;
+            if (result is List<FaceScanAttendanceResult>) {
+              final results = result as List<FaceScanAttendanceResult>;
 
-            if (result.success) {
-              // result.user has full user data — name, email, role, rollNumber, dept
+              int successCount = results.where((r) => r.success).length;
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('✅ ${result.user?.name} marked present'),
-                  backgroundColor: Colors.green,
+                  content: Text('$successCount/${results.length} attendances marked successfully'),
+                  backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
                 ),
               );
               _refreshAttendanceList();
-            }
-          }, child: Text('Attendance'))
+
+            }*//*
+            // if (result.success) {
+            //   // result.user has full user data — name, email, role, rollNumber, dept
+            //   ScaffoldMessenger.of(context).showSnackBar(
+            //     SnackBar(
+            //       content: Text('✅ ${result.user?.name} marked present'),
+            //       backgroundColor: Colors.green,
+            //     ),
+            //   );
+            //   _refreshAttendanceList();
+            // }
+          }, child: Text('Attendance'))*/
         ],
       ),
       body: BlocBuilder<UsersBloc, UsersState>(

@@ -1,15 +1,11 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
-import 'dart:ui';
-import 'package:facial_attendance/core/crop_face_from_image.dart';
-import 'package:facial_attendance/core/face_service.dart';
-import 'package:facial_attendance/core/match_result.dart';
-import 'package:facial_attendance/local_database/app_database.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+/*
 class FaceEmbeddingService {
   late Interpreter _interpreter;
   bool _isLoaded = false;
@@ -100,7 +96,8 @@ class FaceEmbeddingService {
     return dotProduct / (sqrt(normA) * sqrt(normB));
   }
 
- /* Future<void> processGroupPhotoForAttendance(File groupPhoto) async {
+ */
+/* Future<void> processGroupPhotoForAttendance(File groupPhoto) async {
     final inputImage = InputImage.fromFile(groupPhoto);
 
     // Step 1: Detect all faces
@@ -169,5 +166,132 @@ class FaceEmbeddingService {
     }
 
     return minDistance < threshold ? MatchResult(bestUser!, minDistance) : null;
-  }*/
+  }*//*
+
+}*/
+
+
+
+class FaceEmbeddingService {
+  Interpreter? _interpreter;
+  bool _isLoaded = false;
+
+  Future<void> loadModel() async {
+    if (_isLoaded) return;
+
+    try {
+      final options = InterpreterOptions()
+        ..threads = 4
+        ..useNnApiForAndroid = true;
+
+      _interpreter = await Interpreter.fromAsset(
+        'assets/model/mobilefacenet.tflite',
+        options: options,
+      );
+
+      _isLoaded = true;
+      debugPrint('✅ FaceEmbeddingService: MobileFaceNet model loaded successfully');
+    } catch (e) {
+      debugPrint('❌ Failed to load model: $e');
+      rethrow;
+    }
+  }
+
+  /// Generate embedding from cropped face image
+  Future<List<double>?> getEmbedding(img.Image image) async {
+    if (!_isLoaded) {
+      await loadModel();
+    }
+
+    try {
+      // Resize to model input size
+      final resized = img.copyResize(image, width: 112, height: 112);
+
+      // Prepare input tensor
+      final input = Float32List(1 * 112 * 112 * 3);
+      int index = 0;
+
+      for (int y = 0; y < 112; y++) {
+        for (int x = 0; x < 112; x++) {
+          final pixel = resized.getPixel(x, y);
+          input[index++] = (pixel.r - 128) / 128.0;
+          input[index++] = (pixel.g - 128) / 128.0;
+          input[index++] = (pixel.b - 128) / 128.0;
+        }
+      }
+
+      // Output buffer
+      final output = List.generate(1, (_) => List<double>.filled(192, 0.0));
+
+      // Run inference
+      _interpreter!.run(input.reshape([1, 112, 112, 3]), output);
+
+      // L2 Normalization (Very Important)
+      final embedding = _l2Normalize(output[0]);
+
+      debugPrint('✅ Embedding generated | Length: ${embedding.length}');
+      return embedding;
+    } catch (e) {
+      debugPrint('❌ getEmbedding error: $e');
+      return null;
+    }
+  }
+
+  /// L2 Normalization
+  List<double> _l2Normalize(List<double> vector) {
+    double norm = 0.0;
+    for (var v in vector) {
+      norm += v * v;
+    }
+    norm = sqrt(norm);
+
+    if (norm == 0) return vector;
+    return vector.map((v) => v / norm).toList();
+  }
+
+  /// Cosine Similarity (Best for face recognition)
+  double cosineSimilarity(List<double> vec1, List<double> vec2) {
+    if (vec1.length != vec2.length || vec1.isEmpty) {
+      debugPrint('⚠️ Embedding size mismatch');
+      return 0.0;
+    }
+
+    double dotProduct = 0.0;
+    double normA = 0.0;
+    double normB = 0.0;
+
+    for (int i = 0; i < vec1.length; i++) {
+      dotProduct += vec1[i] * vec2[i];
+      normA += vec1[i] * vec1[i];
+      normB += vec2[i] * vec2[i];
+    }
+
+    if (normA == 0 || normB == 0) return 0.0;
+
+    final cosine = dotProduct / (sqrt(normA) * sqrt(normB));
+
+    // Convert from [-1, 1] to [0, 1] range for easier threshold handling
+    return (cosine + 1.0) / 2.0;
+  }
+
+  /// Optional: Get embedding directly from file path
+  Future<List<double>?> getEmbeddingFromPath(String imagePath) async {
+    try {
+      final bytes = await File(imagePath).readAsBytes();
+      final image = img.decodeImage(bytes);
+      if (image == null) return null;
+
+      return await getEmbedding(image);
+    } catch (e) {
+      debugPrint('❌ getEmbeddingFromPath error: $e');
+      return null;
+    }
+  }
+
+  void dispose() {
+    _interpreter?.close();
+    _interpreter = null;
+    _isLoaded = false;
+    debugPrint('🗑️ FaceEmbeddingService disposed');
+  }
 }
