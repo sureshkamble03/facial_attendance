@@ -30,7 +30,7 @@ Future<bool> verifyFace(
     // Step 3 — get new embedding
     // ✅ ensureLoaded() inside getEmbedding — never throws "Model not loaded"
     final newEmbedding = await embeddingService.getEmbedding(cropped);
-    debugPrint('✅ New embedding length: ${newEmbedding.length}');
+    debugPrint('✅ New embedding length: ${newEmbedding!.length}');
 
     // Step 4 — load stored embedding from ONE source only
     // ✅ Removed duplicate SharedPreferences read — LocalStorage handles it

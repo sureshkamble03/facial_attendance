@@ -4,6 +4,7 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+/*
 class FaceService {
   final FaceDetector _detector = FaceDetector(
     options: FaceDetectorOptions(enableContours: true,enableClassification: true,enableTracking: true),
@@ -118,6 +119,170 @@ class FaceService {
   }
 
   // ✅ Always close when done
+  void dispose() {
+    _detector.close();
+  }
+}*/
+
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import 'package:image/image.dart' as img;
+
+class FaceService {
+  final FaceDetector _detector = FaceDetector(
+    options: FaceDetectorOptions(
+      enableContours: true,
+      enableClassification: true,
+      enableTracking: true,
+      enableLandmarks: true,        // Good for better cropping
+    ),
+  );
+
+  // ─────────────────────────────────────────────────────────────
+  // NEW: Detect Multiple Faces (Most Important for Group Scan)
+  // ─────────────────────────────────────────────────────────────
+  Future<List<Face>> detectFaces(String path) async {
+    try {
+      final inputImage = InputImage.fromFilePath(path);
+
+      // Use more accurate settings for group photos
+      final options = FaceDetectorOptions(
+        enableContours: true,
+        enableLandmarks: true,
+        enableClassification: true,
+        performanceMode: FaceDetectorMode.accurate,   // Better for multiple faces
+        minFaceSize: 0.1,  // Lower this to detect smaller faces
+      );
+
+      final detector = FaceDetector(options: options);
+      final faces = await detector.processImage(inputImage);
+      detector.close();
+
+      debugPrint('👥 FaceDetector found ${faces.length} faces');
+      for (int i = 0; i < faces.length; i++) {
+        final box = faces[i].boundingBox;
+        debugPrint('   Face ${i+1}: ${box.width.toInt()}x${box.height.toInt()} at (${box.left.toInt()}, ${box.top.toInt()})');
+      }
+
+      return faces;
+    } catch (e) {
+      debugPrint('❌ Face detection error: $e');
+      return [];
+    }
+  }
+
+  // Keep your existing single face method for backward compatibility
+  Future<Face?> detectSingleFace(String path) async {
+    final faces = await detectFaces(path);
+    return faces.isNotEmpty ? faces.first : null;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Crop Single Face (Your current method - Improved slightly)
+  // ─────────────────────────────────────────────────────────────
+ /* Future<img.Image?> cropFace(String path, Face face) async {
+    try {
+      final imageBytes = await File(path).readAsBytes();
+      final image = img.decodeImage(imageBytes);
+
+      if (image == null) {
+        debugPrint('❌ cropFace: could not decode image');
+        return null;
+      }
+
+      final rect = face.boundingBox;
+
+      if (rect.width <= 0 || rect.height <= 0) {
+        debugPrint('❌ cropFace: invalid bounding box');
+        return null;
+      }
+
+      final int padding = (rect.width * 0.20).toInt(); // 20% padding
+
+      final int x = (rect.left.toInt() - padding).clamp(0, image.width - 1);
+      final int y = (rect.top.toInt() - padding).clamp(0, image.height - 1);
+      final int w = (rect.width.toInt() + padding * 2).clamp(1, image.width - x);
+      final int h = (rect.height.toInt() + padding * 2).clamp(1, image.height - y);
+
+      if (w <= 0 || h <= 0) return null;
+
+      debugPrint('✂️ Cropping face → x:$x y:$y w:$w h:$h');
+
+      return img.copyCrop(image, x: x, y: y, width: w, height: h);
+    } catch (e) {
+      debugPrint('❌ cropFace exception: $e');
+      return null;
+    }
+  }*/
+
+  Future<img.Image?> cropFace(String path, Face face) async {
+    try {
+      final imageBytes = await File(path).readAsBytes();
+      final image = img.decodeImage(imageBytes);
+      if (image == null) return null;
+
+      final rect = face.boundingBox;
+
+      // Increased padding for better context
+      final int padding = (rect.width * 0.25).toInt();
+
+      int x = (rect.left.toInt() - padding).clamp(0, image.width);
+      int y = (rect.top.toInt() - padding).clamp(0, image.height);
+      int w = (rect.width.toInt() + padding * 2).clamp(1, image.width - x);
+      int h = (rect.height.toInt() + padding * 2).clamp(1, image.height - y);
+
+      // Optional: Use landmarks for better alignment (if available)
+      if (face.landmarks.isNotEmpty) {
+        // You can rotate/crop more accurately using eyes/nose
+      }
+
+      return img.copyCrop(image, x: x, y: y, width: w, height: h);
+    } catch (e) {
+      debugPrint('❌ cropFace error: $e');
+      return null;
+    }
+  }
+  // ─────────────────────────────────────────────────────────────
+  // NEW: Crop Multiple Faces (Very useful for group mode)
+  // ─────────────────────────────────────────────────────────────
+  Future<List<img.Image>> cropMultipleFaces(
+      String imagePath, List<Face> faces) async {
+    final List<img.Image> croppedFaces = [];
+
+    for (int i = 0; i < faces.length; i++) {
+      final cropped = await cropFace(imagePath, faces[i]);
+      if (cropped != null) {
+        croppedFaces.add(cropped);
+        debugPrint('✅ Cropped face ${i + 1}/${faces.length}');
+      }
+    }
+
+    return croppedFaces;
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Optional: Save cropped face to temporary file (Useful for embedding)
+  // ─────────────────────────────────────────────────────────────
+  Future<String?> saveCroppedFace(img.Image croppedImage, String originalPath) async {
+    try {
+      final tempDir = await Directory.systemTemp.createTemp('face_crop_');
+      final fileName = 'crop_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final file = File('${tempDir.path}/$fileName');
+
+      final jpgBytes = img.encodeJpg(croppedImage, quality: 95);
+      await file.writeAsBytes(jpgBytes);
+
+      return file.path;
+    } catch (e) {
+      debugPrint('❌ saveCroppedFace error: $e');
+      return null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Cleanup
+  // ─────────────────────────────────────────────────────────────
   void dispose() {
     _detector.close();
   }
