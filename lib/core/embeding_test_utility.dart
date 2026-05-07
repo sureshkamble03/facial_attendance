@@ -135,7 +135,7 @@ class EmbeddingTestUtility {
       debugPrint('🧠 Generating embedding...');
       await embeddingService.loadModel(); // safe — skips if already loaded
       final embedding = await embeddingService.getEmbedding(cropped);
-      debugPrint('✅ Embedding generated → length: ${embedding.length}');
+      debugPrint('✅ Embedding generated → length: ${embedding!.length}');
 
       if (embedding.length != 192) {
         return EmbeddingFromUrlResult(

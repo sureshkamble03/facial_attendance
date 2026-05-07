@@ -14,12 +14,10 @@ import '../local_database/app_database.dart';
 // No userId needed — user is identified purely from the face scan.
 // ─────────────────────────────────────────────────────────────────────────────
 class ScanCameraScreen extends StatefulWidget {
-  final int sessionId;
   final AppDatabase db;
 
   const ScanCameraScreen({
     super.key,
-    required this.sessionId,
     required this.db,
   });
 
@@ -52,6 +50,8 @@ class _ScanCameraScreenState extends State<ScanCameraScreen> {
     options: FaceDetectorOptions(
       enableClassification: true,
       enableTracking: true,
+      performanceMode: FaceDetectorMode.accurate,
+      minFaceSize: 0.10,
     ),
   );
 
@@ -144,8 +144,6 @@ class _ScanCameraScreenState extends State<ScanCameraScreen> {
   // ── Face scan → identify → mark attendance ────────────────────────────────
 
   Future<void> _runFaceScanAttendance(String imagePath) async {
-    debugPrint('🔄 Running face scan attendance for session: ${widget.sessionId}');
-
     // Single DB call does everything:
     // detect → crop → embed → match user → validate session → mark attendance
     final result = await widget.db.markAttendanceByFaceScan(

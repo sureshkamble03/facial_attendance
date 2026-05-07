@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:facial_attendance/core/user_with_embedding.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' hide Table;
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:image/src/image/image.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../core/embedding_service.dart';
@@ -454,164 +455,277 @@ class AppDatabase extends _$AppDatabase {
   // }
 
 // ==================== MAIN METHOD ====================
+  // ── app_database.dart additions ──────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mark multiple attendance by face scan
+// ─────────────────────────────────────────────────────────────────────────────
+// ====================== GROUP ATTENDANCE ======================
+
   Future<List<FaceScanAttendanceResult>> markMultipleAttendanceByFaceScan({
     required String imagePath,
     required FaceEmbeddingService embeddingService,
     required FaceService faceService,
-    List<Face>? detectedFaces,
-    required int sessionId,
+    double threshold = 0.75,
   }) async {
-    final List<FaceScanAttendanceResult> results = [];
+    final results = <FaceScanAttendanceResult>[];
 
     try {
-      List<Face> faces = detectedFaces ?? [];
-      if (faces.isEmpty) {
-        faces = await faceService.detectFaces(imagePath);
-      }
+      debugPrint('🔄 Starting Group Attendance Scan...');
 
-      debugPrint('👥 Detected ${faces.length} face(s) in photo');
+      // Step 1: Detect all faces in the image
+      final faces = await faceService.detectFaces(imagePath);
 
       if (faces.isEmpty) {
-        return [FaceScanAttendanceResult(
-          success: false,
-          similarity: 0.0,
-          message: "No faces detected",
-        )];
+        return [
+          const FaceScanAttendanceResult(
+            success: false,
+            message: 'No faces detected in the image',
+          )
+        ];
       }
 
-      final allUsers = await getAllUsersWithEmbeddings();
+      debugPrint('👥 Detected ${faces.length} faces');
 
+      // Step 2: Process each face
       for (int i = 0; i < faces.length; i++) {
         final face = faces[i];
-        debugPrint('🔄 Processing face ${i + 1}/${faces.length}');
+        debugPrint('Processing face ${i + 1}/${faces.length}');
 
-        final result = await _processSingleFace(
-          imagePath: imagePath,
-          face: face,
-          faceService: faceService,
-          embeddingService: embeddingService,
-          allUsers: allUsers,
-        );
+        try {
+          // Crop face
+          final croppedPath = await faceService.cropFace(imagePath, face);
+          if (croppedPath == null) {
+            results.add(FaceScanAttendanceResult(
+              success: false,
+              message: 'Failed to crop face ${i + 1}',
+            ));
+            continue;
+          }
 
-        results.add(result);   // ← Only add once
+          // Get embedding
+          final embedding = await embeddingService.getEmbedding(croppedPath);
+          if (embedding.length != 192) {
+            results.add(const FaceScanAttendanceResult(
+              success: false,
+              message: 'Invalid embedding',
+            ));
+            continue;
+          }
 
-        if (result.success && result.user != null) {
-          debugPrint('✅ MATCH: ${result.user!.name} (${result.similarity.toStringAsFixed(3)})');
+          // Find best match
+          final matchResult = await findBestMatch(
+            embedding,
+            embeddingService,
+            threshold: threshold,
+          );
 
-          await markAttendance(
+          final matchedUser = matchResult.user;
+          final similarity = matchResult.similarity;
+
+          if (matchedUser == null) {
+            results.add(FaceScanAttendanceResult(
+              success: false,
+              message: 'Face not recognized',
+              similarity: similarity,
+            ));
+            continue;
+          }
+
+          // Check if already marked today
+          final alreadyMarked = await isAlreadyMarked(matchedUser.id);
+          if (alreadyMarked) {
+            results.add(FaceScanAttendanceResult(
+              success: false,
+              message: 'Already marked today',
+              user: matchedUser,
+              similarity: similarity,
+            ));
+            continue;
+          }
+
+          // Mark Attendance
+          final now = DateTime.now();
+          final normalizedDate = DateTime(now.year, now.month, now.day);
+          final markedAtTime = '${now.hour.toString().padLeft(2, '0')}:'
+              '${now.minute.toString().padLeft(2, '0')}:'
+              '${now.second.toString().padLeft(2, '0')}';
+
+          final recordId = await markAttendance(
             AttendanceRecordsCompanion.insert(
-              userId: result.user!.id,
-              role: result.user!.role,
-              markedAt: DateTime.now().toIso8601String(),
-              markedDate: DateTime.now(),
+              userId: matchedUser.id,
+              role: matchedUser.role,
+              markedAt: markedAtTime,
+              markedDate: normalizedDate,
               method: const Value('face_group'),
               status: const Value('present'),
-              similarityScore: Value(result.similarity),
+              similarityScore: Value(similarity),
             ),
           );
-        } else {
-          debugPrint('❌ No match for face ${i+1} | Best: ${result.similarity.toStringAsFixed(3)}');
+
+          // Log face scan
+          await insertFaceLog(
+            FaceLogsCompanion.insert(
+              userId: matchedUser.id,
+              isMatch: true,
+              similarity: similarity,
+              imagePath: Value(imagePath),
+              scannedAt: Value(now),
+            ),
+          );
+
+          // Fetch record
+          final record = await (select(attendanceRecords)
+            ..where((r) => r.id.equals(recordId)))
+              .getSingleOrNull();
+
+          results.add(FaceScanAttendanceResult(
+            success: true,
+            message: 'Attendance marked',
+            user: matchedUser,
+            record: record,
+            similarity: similarity,
+          ));
+
+          debugPrint('✅ Marked: ${matchedUser.name}');
+        } catch (e) {
+          debugPrint('❌ Error processing face ${i + 1}: $e');
+          results.add(FaceScanAttendanceResult(
+            success: false,
+            message: 'Error processing face',
+          ));
         }
       }
 
       return results;
-    } catch (e) {
-      debugPrint('❌ markMultipleAttendanceByFaceScan error: $e');
-      return [];
+    } catch (e, stack) {
+      debugPrint('❌ Group attendance error: $e\n$stack');
+      return [
+        FaceScanAttendanceResult(
+          success: false,
+          message: 'Group attendance failed: $e',
+        )
+      ];
     }
   }
 
-// ==================== HELPER METHOD ====================
+// ─────────────────────────────────────────────────────────────────────────────
+// Process single face — crop → embed → match against all users
+// ─────────────────────────────────────────────────────────────────────────────
   Future<FaceScanAttendanceResult> _processSingleFace({
     required String imagePath,
     required Face face,
+    required int faceIndex,
     required FaceService faceService,
     required FaceEmbeddingService embeddingService,
     required List<UserWithEmbedding> allUsers,
+    required Set<int> matchedUserIds, // ✅ prevents same user matching twice
   }) async {
     try {
-      debugPrint('   ├─ Cropping face...');
-
-      // Crop face
-      final croppedImage = await faceService.cropFace(imagePath, face);
-      if (croppedImage == null) {
-        return FaceScanAttendanceResult(
+      // ── Step 1: crop face with padding ──────────────────────────────────────
+      debugPrint('   ├─ Cropping face ${faceIndex + 1}...');
+      final cropped = await faceService.cropFace(imagePath, face);
+      if (cropped == null) {
+        debugPrint('   ❌ Crop failed');
+        return const FaceScanAttendanceResult(
           success: false,
           similarity: 0.0,
-          message: "Failed to crop face",
+          message: 'Failed to crop face',
         );
       }
+      debugPrint('   ├─ Cropped size: ${cropped.width}x${cropped.height}');
 
-      // Save cropped image temporarily
-      final tempPath = await faceService.saveCroppedFace(croppedImage, imagePath);
-      if (tempPath == null) {
-        return FaceScanAttendanceResult(
-          success: false,
-          similarity: 0.0,
-          message: "Failed to save cropped face",
-        );
-      }
-
+      // ── Step 2: generate embedding directly from cropped image ──────────────
+      // ✅ No re-detection — pass img.Image directly to getEmbedding()
       debugPrint('   ├─ Generating embedding...');
+      final embedding = await embeddingService.getEmbedding(cropped);
 
-      // Get embedding for THIS face only
-      final embedding = await embeddingService.getEmbeddingFromPath(tempPath);
-      if (embedding == null || embedding.isEmpty) {
-        return FaceScanAttendanceResult(
+      if (embedding.length != 192) {
+        debugPrint('   ❌ Invalid embedding length: ${embedding.length}');
+        return const FaceScanAttendanceResult(
           success: false,
           similarity: 0.0,
-          message: "Failed to generate embedding",
+          message: 'Failed to generate embedding',
         );
       }
 
+      // Debug: check embedding norm — should be ~1.0 if L2 normalized
+      final norm = sqrt(embedding.fold(0.0, (s, v) => s + v * v));
+      debugPrint('   ├─ Embedding norm: ${norm.toStringAsFixed(4)} '
+          '${(norm - 1.0).abs() < 0.05 ? "✅ normalized" : "⚠️ NOT normalized"}');
+
+      // ── Step 3: match against all registered users ───────────────────────────
       debugPrint('   ├─ Matching against ${allUsers.length} users...');
 
       double bestSimilarity = 0.0;
       User? matchedUser;
+      String bestUserName = 'none';
 
-      // Find best match for this specific face
       for (final userWithEmb in allUsers) {
-        if (userWithEmb.embedding == null || userWithEmb.embedding!.isEmpty) continue;
+        // Skip already matched users in this group scan
+        if (matchedUserIds.contains(userWithEmb.user.id)) {
+          debugPrint('   │  ⏭️ Skipping ${userWithEmb.user.name} (already matched)');
+          continue;
+        }
+
+        final stored = userWithEmb.embedding;
+
+        // ✅ Safe cast — handles both int and double in JSON
+        if (stored == null || stored.length != 192) {
+          continue;
+        }
 
         final similarity = embeddingService.cosineSimilarity(
           embedding,
-          userWithEmb.embedding!,
+          stored,
         );
+
+        debugPrint('   │  👤 ${userWithEmb.user.name} → '
+            '${similarity.toStringAsFixed(4)}');
 
         if (similarity > bestSimilarity) {
           bestSimilarity = similarity;
-          matchedUser = userWithEmb.user;
+          matchedUser    = userWithEmb.user;
+          bestUserName   = userWithEmb.user.name;
         }
       }
 
-      const double threshold = 0.75;   // Lowered for testing
+      debugPrint('   └─ Best match: $bestUserName → '
+          '${bestSimilarity.toStringAsFixed(4)}');
+
+      // ── Step 4: threshold check ──────────────────────────────────────────────
+      const double threshold = 0.70; // ✅ slightly lower for group/angle variation
 
       if (bestSimilarity >= threshold && matchedUser != null) {
-        debugPrint('   ✅ MATCH → ${matchedUser.name} | Similarity: ${bestSimilarity.toStringAsFixed(3)}');
+        debugPrint('   ✅ MATCH → ${matchedUser.name} '
+            '(${(bestSimilarity * 100).toStringAsFixed(1)}%)');
         return FaceScanAttendanceResult(
           success: true,
           user: matchedUser,
           similarity: bestSimilarity,
-          message: "Attendance marked",
-        );
-      } else {
-        debugPrint('   ❌ No match | Best similarity: ${bestSimilarity.toStringAsFixed(3)}');
-        return FaceScanAttendanceResult(
-          success: false,
-          user: null,
-          similarity: bestSimilarity,
-          message: "Face not recognized",
+          message: 'Attendance marked',
         );
       }
-    } catch (e) {
-      debugPrint('   ❌ _processSingleFace error: $e');
+
+      debugPrint('   ❌ No match | best: '
+          '${(bestSimilarity * 100).toStringAsFixed(1)}% < '
+          '${(threshold * 100).toStringAsFixed(0)}%');
+      return FaceScanAttendanceResult(
+        success: false,
+        similarity: bestSimilarity,
+        message: 'Face not recognised '
+            '(${(bestSimilarity * 100).toStringAsFixed(1)}%)',
+      );
+    } catch (e, stack) {
+      debugPrint('   ❌ _processSingleFace error: $e\n$stack');
       return FaceScanAttendanceResult(
         success: false,
         similarity: 0.0,
-        message: "Processing error",
+        message: 'Processing error: $e',
       );
     }
   }
+
   Future<List<UserWithEmbedding>> getAllUsersWithEmbeddings() async {
     try {
       final usersList = await select(users).get();
@@ -633,6 +747,7 @@ class AppDatabase extends _$AppDatabase {
       return [];
     }
   }
+
   List<double>? _parseEmbedding(String? embeddingJson) {
     if (embeddingJson == null || embeddingJson.isEmpty) return null;
 

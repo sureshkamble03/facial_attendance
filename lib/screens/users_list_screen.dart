@@ -148,24 +148,109 @@ class _UsersListState extends State<UsersList> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          final result = await Navigator.push<FaceScanAttendanceResult>(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  ScanCameraScreen(sessionId: 1, db: getIt<AppDatabase>()),
+          // final result = await Navigator.push<FaceScanAttendanceResult>(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) =>
+          //         ScanCameraScreen(sessionId: 1, db: getIt<AppDatabase>()),
+          //   ),
+          // );
+          //
+          // if (!mounted || result == null) return;
+          //
+          // if (result.success) {
+          //   ScaffoldMessenger.of(context).showSnackBar(
+          //     SnackBar(
+          //       content: Text('✅ ${result.user?.name} marked present'),
+          //       backgroundColor: Colors.green,
+          //     ),
+          //   );
+          //   _refreshAttendanceList();
+          // }
+          // Show dialog with two options
+          final String? choice = await showDialog<String>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Mark Attendance'),
+              content: const Text('Choose attendance mode:'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'single'),
+                  child: const Text('Single Person'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'group'),
+                  child: const Text('Group Attendance'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
             ),
           );
 
-          if (!mounted || result == null) return;
+          if (choice == null) return; // User cancelled
 
-          if (result.success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('✅ ${result.user?.name} marked present'),
-                backgroundColor: Colors.green,
+          final db = getIt<AppDatabase>();
+
+          if (choice == 'single') {
+            // Navigate to Single Face Scan
+            final result = await Navigator.push<FaceScanAttendanceResult?>(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ScanCameraScreen(
+                  db: db,
+                ),
               ),
             );
-            _refreshAttendanceList();
+
+            if (!mounted || result == null) return;
+
+            if (result.success && result.user != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('✅ ${result.user!.name} marked present'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              _refreshAttendanceList();
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(result.message),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            }
+          }
+          else if (choice == 'group') {
+            // Navigate to Group Scan
+            final rawResult = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => GroupScanCameraScreen(
+                  db: db,
+                ),
+              ),
+            );
+
+            if (!mounted || rawResult == null) return;
+
+            if (rawResult is List<FaceScanAttendanceResult>) {
+              final results = rawResult;
+              final successCount = results.where((r) => r.success).length;
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '$successCount out of ${results.length} attendances marked successfully',
+                  ),
+                  backgroundColor: successCount > 0 ? Colors.green : Colors.orange,
+                ),
+              );
+              _refreshAttendanceList();
+            }
           }
         },
         icon: const Icon(Icons.camera_alt),

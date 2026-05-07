@@ -167,10 +167,7 @@ class FaceEmbeddingService {
 
     return minDistance < threshold ? MatchResult(bestUser!, minDistance) : null;
   }*//*
-
 }*/
-
-
 
 class FaceEmbeddingService {
   Interpreter? _interpreter;
@@ -198,54 +195,45 @@ class FaceEmbeddingService {
   }
 
   /// Generate embedding from cropped face image
-  Future<List<double>?> getEmbedding(img.Image image) async {
-    if (!_isLoaded) {
-      await loadModel();
-    }
+  Future<List<double>> getEmbedding(img.Image image) async {
+    if (!_isLoaded) await loadModel();
 
-    try {
-      // Resize to model input size
-      final resized = img.copyResize(image, width: 112, height: 112);
+    // ✅ Step 1: Always resize to exactly 112x112
+    final resized = img.copyResize(
+      image,
+      width: 112,
+      height: 112,
+      interpolation: img.Interpolation.linear, // ✅ consistent interpolation
+    );
 
-      // Prepare input tensor
-      final input = Float32List(1 * 112 * 112 * 3);
-      int index = 0;
+    // ✅ Step 2: Normalize using EXACTLY the same formula every time
+    // MobileFaceNet expects: (pixel - 127.5) / 128.0
+    // NOT (pixel - 128) / 128 — tiny difference, big impact
+    final input = Float32List(1 * 112 * 112 * 3);
+    int index = 0;
 
-      for (int y = 0; y < 112; y++) {
-        for (int x = 0; x < 112; x++) {
-          final pixel = resized.getPixel(x, y);
-          input[index++] = (pixel.r - 128) / 128.0;
-          input[index++] = (pixel.g - 128) / 128.0;
-          input[index++] = (pixel.b - 128) / 128.0;
-        }
+    for (int y = 0; y < 112; y++) {
+      for (int x = 0; x < 112; x++) {
+        final pixel = resized.getPixel(x, y);
+        input[index++] = (pixel.r.toDouble() - 127.5) / 128.0; // ✅ 127.5 not 128
+        input[index++] = (pixel.g.toDouble() - 127.5) / 128.0;
+        input[index++] = (pixel.b.toDouble() - 127.5) / 128.0;
       }
-
-      // Output buffer
-      final output = List.generate(1, (_) => List<double>.filled(192, 0.0));
-
-      // Run inference
-      _interpreter!.run(input.reshape([1, 112, 112, 3]), output);
-
-      // L2 Normalization (Very Important)
-      final embedding = _l2Normalize(output[0]);
-
-      debugPrint('✅ Embedding generated | Length: ${embedding.length}');
-      return embedding;
-    } catch (e) {
-      debugPrint('❌ getEmbedding error: $e');
-      return null;
     }
+
+    final output = List.generate(1, (_) => List.filled(192, 0.0));
+    _interpreter?.run(input.reshape([1, 112, 112, 3]), output);
+
+    // ✅ Step 3: ALWAYS L2 normalize output
+    return _l2Normalize(output[0]);
   }
 
   /// L2 Normalization
   List<double> _l2Normalize(List<double> vector) {
     double norm = 0.0;
-    for (var v in vector) {
-      norm += v * v;
-    }
+    for (final v in vector) norm += v * v;
     norm = sqrt(norm);
-
-    if (norm == 0) return vector;
+    if (norm < 1e-10) return vector; // ✅ safer zero check
     return vector.map((v) => v / norm).toList();
   }
 
