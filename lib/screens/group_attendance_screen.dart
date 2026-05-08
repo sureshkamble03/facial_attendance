@@ -73,7 +73,7 @@ class _GroupScanCameraScreenState extends State<GroupScanCameraScreen> {
 
       final cameras = await availableCameras();
       _frontCamera = cameras.firstWhere(
-            (c) => c.lensDirection == CameraLensDirection.front, // ← Must be front
+            (c) => c.lensDirection == CameraLensDirection.back, // ← Must be front
         orElse: () => cameras.first,
       );
 
