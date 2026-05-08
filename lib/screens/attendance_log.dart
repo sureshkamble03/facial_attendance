@@ -15,7 +15,8 @@ class AttendanceLogsScreen extends StatefulWidget {
 class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
   List<AttendanceRecordWithUser> _records = [];
   bool _isLoading = true;
-
+  bool _isDeleting = false;
+  int? _deletedCount;
   // Filters
   DateTime? _selectedDate;
   String? _selectedRole; // "student", "teacher", "staff", etc.
@@ -107,6 +108,57 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
     }
   }
 
+  Future<void> _deleteTodaysLogs() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Today\'s Attendance?'),
+        content: const Text(
+          'This action will delete ALL attendance records marked today.\n\n'
+              'This cannot be undone. Are you sure?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _isDeleting = true);
+
+    try {
+      final count = await widget.db.deleteTodaysAttendance();
+
+      setState(() => _deletedCount = count);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$count records deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Delete error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete records')),
+        );
+      }
+    } finally {
+      setState(() => _isDeleting = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,6 +171,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _loadAttendanceLogs,
           ),
+          IconButton(onPressed: _isDeleting ? null : _deleteTodaysLogs, icon: const Icon(Icons.delete))
         ],
       ),
       body: Column(

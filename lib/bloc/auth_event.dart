@@ -11,7 +11,7 @@ class RegisterEvent extends AuthEvent {
   final String name;
   final String email;
   final String password;
-  final List<double> imagePath;
+  final String imagePath;
   final String role;
   final String? rollNumber;
   final String? employeeId;

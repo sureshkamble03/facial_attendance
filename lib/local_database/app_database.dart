@@ -136,8 +136,9 @@ class AppDatabase extends _$AppDatabase {
 
       // Safe JSON decode — skip corrupted entries
       List<double> storedEmbedding;
+      final decryptedStored = await embeddingService.getDecryptedEmbedding(user.embedding!);
       try {
-        storedEmbedding = (jsonDecode(user.embedding!) as List)
+        storedEmbedding = (decryptedStored as List)
             .map((e) => (e as num).toDouble())
             .toList();
       } catch (e) {
@@ -724,6 +725,20 @@ class AppDatabase extends _$AppDatabase {
         message: 'Processing error: $e',
       );
     }
+  }
+
+  // Delete Today's Attendance Records
+  Future<int> deleteTodaysAttendance() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    final deletedCount = await (delete(attendanceRecords)
+      ..where((tbl) => tbl.markedDate.equals(today)))
+        .go();
+
+    debugPrint('🗑️ Deleted $deletedCount attendance records for today');
+
+    return deletedCount;
   }
 
   Future<List<UserWithEmbedding>> getAllUsersWithEmbeddings() async {

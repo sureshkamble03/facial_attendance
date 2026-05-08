@@ -10,6 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 
+import '../core/embeding_encryption_service.dart';
 import '../core/face_service.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -95,8 +96,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (cropped == null) return;
 
     final embedding = await widget.embeddingService.getEmbedding(cropped);
-
-    if (embedding!.length != 192) return;
+    final encryptionService = EmbeddingEncryptionService();
+    final encryptedEmbedding = await encryptionService.encryptEmbedding(embedding);
+    if (embedding.length != 192) return;
 
     // -------- SEND TO BLOC --------
     context.read<AuthBloc>().add(
@@ -104,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         nameController.text,
         emailController.text,
         passwordController.text,
-        embedding,
+        encryptedEmbedding,
         compressedPath,
         role: selectedRole,
         rollNumber: selectedRole == "student"

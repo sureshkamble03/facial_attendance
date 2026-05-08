@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'core/attendance_service.dart';
+import 'core/embeding_encryption_service.dart';
 import 'local_database/app_database.dart';
 
 final getIt = GetIt.instance;
@@ -26,6 +27,7 @@ final getIt = GetIt.instance;
 Future<void> setupLocator() async {
   // Database — singleton
   getIt.registerSingleton<AppDatabase>(AppDatabase());
+  getIt.registerSingleton<EmbeddingEncryptionService>(EmbeddingEncryptionService());
 
   // Embedding service — load model once
   final embeddingService = FaceEmbeddingService();

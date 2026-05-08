@@ -2,8 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
-import 'package:tflite_flutter/tflite_flutter.dart';
-
+import 'embeding_encryption_service.dart';
 /*
 class FaceService {
   final FaceDetector _detector = FaceDetector(
@@ -124,12 +123,10 @@ class FaceService {
   }
 }*/
 
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:image/image.dart' as img;
+
 
 class FaceService {
+
   final FaceDetector _detector = FaceDetector(
     options: FaceDetectorOptions(
       enableContours: true,

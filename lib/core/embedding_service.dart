@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+import 'embeding_encryption_service.dart';
+
 /*
 class FaceEmbeddingService {
   late Interpreter _interpreter;
@@ -170,6 +172,7 @@ class FaceEmbeddingService {
 }*/
 
 class FaceEmbeddingService {
+  final EmbeddingEncryptionService _encryption = EmbeddingEncryptionService();
   Interpreter? _interpreter;
   bool _isLoaded = false;
 
@@ -274,6 +277,16 @@ class FaceEmbeddingService {
       debugPrint('❌ getEmbeddingFromPath error: $e');
       return null;
     }
+  }
+
+  // When saving embedding to database
+  Future<String> getEncryptedEmbedding(List<double> rawEmbedding) async {
+    return await _encryption.encryptEmbedding(rawEmbedding);
+  }
+
+  // When loading for comparison
+  Future<List<double>> getDecryptedEmbedding(String encryptedEmbedding) async {
+    return await _encryption.decryptEmbedding(encryptedEmbedding);
   }
 
   void dispose() {

@@ -9,6 +9,7 @@ import '../local_database/app_database.dart';
 import '../main.dart';
 import 'attendance_log.dart';
 import 'embeding_test_screen_from_url.dart';
+import 'group_photo_attendance.dart';
 import 'new_attendance_screen.dart';
 
 class UsersList extends StatefulWidget {
@@ -62,6 +63,14 @@ class _UsersListState extends State<UsersList> {
                     ),
                   );
                   break;
+                case 'group':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => GroupPhotoAttendanceScreen(db: getIt<AppDatabase>()),
+                    ),
+                  );
+                  break;
                 case 'test':
                   Navigator.push(
                     context,
@@ -99,6 +108,13 @@ class _UsersListState extends State<UsersList> {
                 ),
               ),
               const PopupMenuItem(
+                value: 'group',
+                child: ListTile(
+                  leading: Icon(Icons.science),
+                  title: Text("Photo Attendance"),
+                ),
+              ),
+              const PopupMenuItem(
                 value: 'refresh',
                 child: ListTile(
                   leading: Icon(Icons.refresh),
@@ -111,63 +127,46 @@ class _UsersListState extends State<UsersList> {
       ),
       body: BlocBuilder<UsersBloc, UsersState>(
         builder: (context, state) {
-          return ListView.builder(
-            controller: scrollController,
-            itemCount: state.users.length + 1,
-            itemBuilder: (context, index) {
-              if (index < state.users.length) {
-                final user = state.users[index];
-                return ListTile(
-                  leading: user.faceImagePath != null
-                      ? Image.file(File(user.faceImagePath!), width: 40)
-                      : const Icon(Icons.person),
+          return Container(
+            height: 600,
+            child: ListView.builder(
+              controller: scrollController,
+              itemCount: state.users.length + 1,
+              itemBuilder: (context, index) {
+                if (index < state.users.length) {
+                  final user = state.users[index];
+                  return ListTile(
+                    leading: user.faceImagePath != null
+                        ? Image.file(File(user.faceImagePath!), width: 40)
+                        : const Icon(Icons.person),
 
-                  title: Text(user.name),
-                  subtitle: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(user.email),
-                      Text(user.id.toString()),
-                    ],
-                  ),
-                  trailing: IconButton(
-                    onPressed: () {
-                      _deleteUserWithConfirm(user.id, user.name);
-                    },
-                    icon: Icon(Icons.delete),
-                  ),
-                );
-              } else {
-                return state.hasMore
-                    ? const Center(child: CircularProgressIndicator())
-                    : const SizedBox();
-              }
-            },
+                    title: Text(user.name),
+                    subtitle: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(user.email),
+                        Text(user.id.toString()),
+                      ],
+                    ),
+                    trailing: IconButton(
+                      onPressed: () {
+                        _deleteUserWithConfirm(user.id, user.name);
+                      },
+                      icon: Icon(Icons.delete),
+                    ),
+                  );
+                } else {
+                  return state.hasMore
+                      ? const Center(child: CircularProgressIndicator())
+                      : const SizedBox();
+                }
+              },
+            ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          // final result = await Navigator.push<FaceScanAttendanceResult>(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) =>
-          //         ScanCameraScreen(sessionId: 1, db: getIt<AppDatabase>()),
-          //   ),
-          // );
-          //
-          // if (!mounted || result == null) return;
-          //
-          // if (result.success) {
-          //   ScaffoldMessenger.of(context).showSnackBar(
-          //     SnackBar(
-          //       content: Text('✅ ${result.user?.name} marked present'),
-          //       backgroundColor: Colors.green,
-          //     ),
-          //   );
-          //   _refreshAttendanceList();
-          // }
-          // Show dialog with two options
           final String? choice = await showDialog<String>(
             context: context,
             builder: (context) => AlertDialog(
