@@ -1,3 +1,4 @@
+import 'package:facial_attendance/common_files/colors.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:facial_attendance/local_database/app_database.dart';
@@ -72,7 +73,7 @@ class _GroupPhotoAttendanceScreenState extends State<GroupPhotoAttendanceScreen>
     return Scaffold(
       appBar: AppBar(
         title: const Text('Group Photo Attendance'),
-        backgroundColor: Colors.blue.shade700,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
       ),
       body: Column(

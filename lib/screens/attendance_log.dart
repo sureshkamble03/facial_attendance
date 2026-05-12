@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:facial_attendance/local_database/app_database.dart';
 import 'package:intl/intl.dart';
 
+import '../common_files/colors.dart';
+
 class AttendanceLogsScreen extends StatefulWidget {
   final AppDatabase db;
 
@@ -146,6 +148,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        _loadAttendanceLogs();
       }
     } catch (e) {
       debugPrint('Delete error: $e');
@@ -164,7 +167,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Attendance Logs'),
-        backgroundColor: Colors.blue.shade300,
+        backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         actions: [
           IconButton(

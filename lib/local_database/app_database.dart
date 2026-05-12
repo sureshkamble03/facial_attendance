@@ -211,7 +211,7 @@ class AppDatabase extends _$AppDatabase {
 
       // ── Step 3: Get embedding ────────────────────────────────────────────
       final newEmbedding = await embeddingService.getEmbedding(cropped);
-      debugPrint('✅ New embedding length: ${newEmbedding!.length}');
+      debugPrint('✅ New embedding length: ${newEmbedding.length}');
 
       if (newEmbedding.length != 192) {
         return const FaceScanAttendanceResult(
@@ -257,14 +257,13 @@ class AppDatabase extends _$AppDatabase {
       // ── Step 6: Mark Attendance ──────────────────────────────────────────
       final now = DateTime.now();
       final markedAt = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
-
+      final normalizedDate = DateTime(now.year, now.month, now.day);
       final recordId = await markAttendance(
         AttendanceRecordsCompanion.insert(
-          // sessionId removed
           userId: matchedUser.id,
           role: matchedUser.role,
           markedAt: markedAt,
-          markedDate: now,           // Important: Add date
+          markedDate: normalizedDate,
           method: const Value('face'),
           status: const Value('present'),
           similarityScore: Value(similarity),

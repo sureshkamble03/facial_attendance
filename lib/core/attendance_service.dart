@@ -68,7 +68,7 @@ class AttendanceService {
     if (cropped == null) return false;
 
     final newEmbedding = await embeddingService.getEmbedding(cropped);
-    final similarity = embeddingService.cosineSimilarity(newEmbedding!, stored);
+    final similarity = embeddingService.cosineSimilarity(newEmbedding, stored);
 
     debugPrint('📊 Similarity: $similarity');
 
@@ -100,7 +100,7 @@ class AttendanceService {
 
     final now = TimeOfDay.now();
     final markedAt = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:00';
-
+    final normalizedDate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     // Mark attendance
     await db.markAttendance(
       AttendanceRecordsCompanion.insert(
@@ -108,7 +108,8 @@ class AttendanceService {
         role: role,
         markedAt: markedAt,
         method: const Value('face'),
-        status: const Value('present'), markedDate: DateTime.now(),
+        status: const Value('present'),
+        markedDate: normalizedDate,
       ),
     );
 
