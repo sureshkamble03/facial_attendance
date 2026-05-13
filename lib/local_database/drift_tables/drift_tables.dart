@@ -76,6 +76,9 @@ class AttendanceRecords extends Table {
   TextColumn get method   => text().withDefault(const Constant('face'))();
   // method: 'face' | 'manual'
   RealColumn get similarityScore => real().nullable()(); // face match score
+  RealColumn   get latitude  => real().nullable()();
+  RealColumn   get longitude => real().nullable()();
+  TextColumn   get zoneName  => text().nullable()();
   TextColumn get markedAt => text()(); // 'HH:mm:ss'
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get markedDate => dateTime()();
@@ -98,4 +101,15 @@ class FaceLogs extends Table {
   RealColumn get similarity   => real()();
   TextColumn get imagePath    => text().nullable()();
   DateTimeColumn get scannedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class GeoZones extends Table {
+  IntColumn    get id           => integer().autoIncrement()();
+  TextColumn   get name         => text().withLength(min: 1, max: 100)();
+  RealColumn   get latitude     => real()();
+  RealColumn   get longitude    => real()();
+  // Allowed radius from the zone centre, in metres
+  RealColumn   get radiusMeters => real().withDefault(const Constant(100.0))();
+  BoolColumn   get isActive     => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt  => dateTime().withDefault(currentDateAndTime)();
 }

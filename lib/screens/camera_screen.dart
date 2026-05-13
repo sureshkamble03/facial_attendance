@@ -4,6 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CameraScreen — used for REGISTRATION only.
+// Single-challenge liveness (blink only), forgiving thresholds,
+// generous micro-movement window, camera flip support.
+// Returns file path via Navigator.pop(context, filePath).
+// ─────────────────────────────────────────────────────────────────────────────
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
 
@@ -29,8 +35,9 @@ class _CameraScreenState extends State<CameraScreen>
   int  _microMovementCount  = 0;
   double? _prevEyeY;
 
+  // Much lower bar than attendance: just blink + a tiny bit of natural motion
   static const int _microMovementTarget = 4;
-  static const int _screenFrameLimit    = 8;
+  static const int _screenFrameLimit    = 8; // more lenient than attendance
 
   // ── State ─────────────────────────────────────────────────────────────────
   bool _isProcessing = false;
@@ -78,7 +85,7 @@ class _CameraScreenState extends State<CameraScreen>
 
       if (cameraIndex == null) {
         _selectedCameraIndex = _allCameras.indexWhere(
-                (c) => c.lensDirection == CameraLensDirection.front);
+            (c) => c.lensDirection == CameraLensDirection.front);
         if (_selectedCameraIndex == -1) _selectedCameraIndex = 0;
       } else {
         _selectedCameraIndex = cameraIndex;
@@ -111,7 +118,7 @@ class _CameraScreenState extends State<CameraScreen>
     try { await _controller?.stopImageStream(); } catch (_) {}
     _resetLiveness();
     await _initCamera(cameraIndex:
-    (_selectedCameraIndex + 1) % _allCameras.length);
+        (_selectedCameraIndex + 1) % _allCameras.length);
   }
 
   // ── Liveness helpers ──────────────────────────────────────────────────────
@@ -155,8 +162,8 @@ class _CameraScreenState extends State<CameraScreen>
   /// Returns true once all registration-grade liveness checks pass.
   bool _isRegistrationLivenessPassed() =>
       _blinkDetected &&
-          _microMovementCount >= _microMovementTarget &&
-          !_screenDetected;
+      _microMovementCount >= _microMovementTarget &&
+      !_screenDetected;
 
   // ── Per-frame processing ──────────────────────────────────────────────────
 
@@ -229,7 +236,7 @@ class _CameraScreenState extends State<CameraScreen>
       final WriteBuffer allBytes = WriteBuffer();
       for (final Plane plane in image.planes) allBytes.putUint8List(plane.bytes);
       final rotation = InputImageRotationValue.fromRawValue(
-          camera.sensorOrientation) ??
+              camera.sensorOrientation) ??
           InputImageRotation.rotation0deg;
       final format = InputImageFormatValue.fromRawValue(image.format.raw) ??
           InputImageFormat.nv21;
@@ -258,7 +265,7 @@ class _CameraScreenState extends State<CameraScreen>
     if (!_faceInFrame)           return 'Position your face inside the oval';
     if (!_blinkDetected)         return 'Slowly blink your eyes once';
     if (_microMovementCount < _microMovementTarget)
-      return 'Hold still naturally...';
+                                 return 'Hold still naturally...';
     return 'Almost there...';
   }
 
@@ -290,15 +297,15 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Widget _buildLoading() => Center(
-    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-      const CircularProgressIndicator(color: Colors.white),
-      const SizedBox(height: 16),
-      Text(
-        _isSwitching ? 'Switching camera...' : 'Starting camera...',
-        style: const TextStyle(color: Colors.white),
-      ),
-    ]),
-  );
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const CircularProgressIndicator(color: Colors.white),
+          const SizedBox(height: 16),
+          Text(
+            _isSwitching ? 'Switching camera...' : 'Starting camera...',
+            style: const TextStyle(color: Colors.white),
+          ),
+        ]),
+      );
 
   Widget _buildCamera() {
     return Stack(fit: StackFit.expand, children: [
@@ -320,10 +327,10 @@ class _CameraScreenState extends State<CameraScreen>
               color: _captured
                   ? Colors.green
                   : _screenDetected
-                  ? Colors.red
-                  : _faceInFrame
-                  ? const Color(0xFF00E5FF)
-                  : Colors.white54,
+                      ? Colors.red
+                      : _faceInFrame
+                          ? const Color(0xFF00E5FF)
+                          : Colors.white54,
               width: _faceInFrame ? 3.5 : 2,
             ),
             borderRadius: BorderRadius.circular(150),
@@ -351,7 +358,7 @@ class _CameraScreenState extends State<CameraScreen>
         child: SafeArea(
           child: Padding(
             padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(children: [
               _CircleButton(
                 icon: Icons.arrow_back_ios_rounded,
@@ -377,7 +384,7 @@ class _CameraScreenState extends State<CameraScreen>
                 builder: (_, __) => Transform(
                   alignment: Alignment.center,
                   transform:
-                  Matrix4.rotationY(_flipAnim.value * 3.14159),
+                      Matrix4.rotationY(_flipAnim.value * 3.14159),
                   child: _CircleButton(
                     icon: Icons.flip_camera_ios_rounded,
                     onTap: _flipCamera,
@@ -574,20 +581,20 @@ class _CircleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Tooltip(
-    message: tooltip ?? '',
-    child: GestureDetector(
-      onTap: disabled ? null : onTap,
-      child: Container(
-        width: 42, height: 42,
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.50),
-          shape: BoxShape.circle,
+        message: tooltip ?? '',
+        child: GestureDetector(
+          onTap: disabled ? null : onTap,
+          child: Container(
+            width: 42, height: 42,
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.50),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon,
+                color: disabled ? Colors.white30 : Colors.white, size: 20),
+          ),
         ),
-        child: Icon(icon,
-            color: disabled ? Colors.white30 : Colors.white, size: 20),
-      ),
-    ),
-  );
+      );
 }
 
 class _StepDot extends StatelessWidget {
@@ -608,8 +615,8 @@ class _StepDot extends StatelessWidget {
     final color = done
         ? Colors.greenAccent
         : active
-        ? Colors.white
-        : Colors.white30;
+            ? Colors.white
+            : Colors.white30;
 
     return Column(mainAxisSize: MainAxisSize.min, children: [
       AnimatedContainer(
@@ -621,8 +628,8 @@ class _StepDot extends StatelessWidget {
           color: done
               ? Colors.greenAccent.withOpacity(0.2)
               : active
-              ? Colors.white.withOpacity(0.12)
-              : Colors.transparent,
+                  ? Colors.white.withOpacity(0.12)
+                  : Colors.transparent,
           border: Border.all(color: color, width: done ? 2 : 1.5),
         ),
         child: Icon(done ? Icons.check : icon,
@@ -642,15 +649,15 @@ class _StepLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AnimatedContainer(
-    duration: const Duration(milliseconds: 400),
-    width: 36,
-    height: 2,
-    margin: const EdgeInsets.only(bottom: 16),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(2),
-      color: done ? Colors.greenAccent : Colors.white24,
-    ),
-  );
+        duration: const Duration(milliseconds: 400),
+        width: 36,
+        height: 2,
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(2),
+          color: done ? Colors.greenAccent : Colors.white24,
+        ),
+      );
 }
 
 class _TipText extends StatelessWidget {
@@ -659,12 +666,12 @@ class _TipText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      const Icon(Icons.info_outline, color: Colors.white38, size: 13),
-      const SizedBox(width: 5),
-      Text(text,
-          style: const TextStyle(color: Colors.white38, fontSize: 12)),
-    ],
-  );
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.info_outline, color: Colors.white38, size: 13),
+          const SizedBox(width: 5),
+          Text(text,
+              style: const TextStyle(color: Colors.white38, fontSize: 12)),
+        ],
+      );
 }

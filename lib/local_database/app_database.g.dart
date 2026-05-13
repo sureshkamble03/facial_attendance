@@ -2052,6 +2052,39 @@ class $AttendanceRecordsTable extends AttendanceRecords
     type: DriftSqlType.double,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _zoneNameMeta = const VerificationMeta(
+    'zoneName',
+  );
+  @override
+  late final GeneratedColumn<String> zoneName = GeneratedColumn<String>(
+    'zone_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _markedAtMeta = const VerificationMeta(
     'markedAt',
   );
@@ -2094,6 +2127,9 @@ class $AttendanceRecordsTable extends AttendanceRecords
     status,
     method,
     similarityScore,
+    latitude,
+    longitude,
+    zoneName,
     markedAt,
     createdAt,
     markedDate,
@@ -2148,6 +2184,24 @@ class $AttendanceRecordsTable extends AttendanceRecords
           data['similarity_score']!,
           _similarityScoreMeta,
         ),
+      );
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    }
+    if (data.containsKey('zone_name')) {
+      context.handle(
+        _zoneNameMeta,
+        zoneName.isAcceptableOrUnknown(data['zone_name']!, _zoneNameMeta),
       );
     }
     if (data.containsKey('marked_at')) {
@@ -2205,6 +2259,18 @@ class $AttendanceRecordsTable extends AttendanceRecords
         DriftSqlType.double,
         data['${effectivePrefix}similarity_score'],
       ),
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
+      zoneName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}zone_name'],
+      ),
       markedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}marked_at'],
@@ -2234,6 +2300,9 @@ class AttendanceRecord extends DataClass
   final String status;
   final String method;
   final double? similarityScore;
+  final double? latitude;
+  final double? longitude;
+  final String? zoneName;
   final String markedAt;
   final DateTime createdAt;
   final DateTime markedDate;
@@ -2244,6 +2313,9 @@ class AttendanceRecord extends DataClass
     required this.status,
     required this.method,
     this.similarityScore,
+    this.latitude,
+    this.longitude,
+    this.zoneName,
     required this.markedAt,
     required this.createdAt,
     required this.markedDate,
@@ -2258,6 +2330,15 @@ class AttendanceRecord extends DataClass
     map['method'] = Variable<String>(method);
     if (!nullToAbsent || similarityScore != null) {
       map['similarity_score'] = Variable<double>(similarityScore);
+    }
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
+    if (!nullToAbsent || zoneName != null) {
+      map['zone_name'] = Variable<String>(zoneName);
     }
     map['marked_at'] = Variable<String>(markedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2275,6 +2356,15 @@ class AttendanceRecord extends DataClass
       similarityScore: similarityScore == null && nullToAbsent
           ? const Value.absent()
           : Value(similarityScore),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
+      zoneName: zoneName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(zoneName),
       markedAt: Value(markedAt),
       createdAt: Value(createdAt),
       markedDate: Value(markedDate),
@@ -2293,6 +2383,9 @@ class AttendanceRecord extends DataClass
       status: serializer.fromJson<String>(json['status']),
       method: serializer.fromJson<String>(json['method']),
       similarityScore: serializer.fromJson<double?>(json['similarityScore']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
+      zoneName: serializer.fromJson<String?>(json['zoneName']),
       markedAt: serializer.fromJson<String>(json['markedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       markedDate: serializer.fromJson<DateTime>(json['markedDate']),
@@ -2308,6 +2401,9 @@ class AttendanceRecord extends DataClass
       'status': serializer.toJson<String>(status),
       'method': serializer.toJson<String>(method),
       'similarityScore': serializer.toJson<double?>(similarityScore),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
+      'zoneName': serializer.toJson<String?>(zoneName),
       'markedAt': serializer.toJson<String>(markedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'markedDate': serializer.toJson<DateTime>(markedDate),
@@ -2321,6 +2417,9 @@ class AttendanceRecord extends DataClass
     String? status,
     String? method,
     Value<double?> similarityScore = const Value.absent(),
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
+    Value<String?> zoneName = const Value.absent(),
     String? markedAt,
     DateTime? createdAt,
     DateTime? markedDate,
@@ -2333,6 +2432,9 @@ class AttendanceRecord extends DataClass
     similarityScore: similarityScore.present
         ? similarityScore.value
         : this.similarityScore,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
+    zoneName: zoneName.present ? zoneName.value : this.zoneName,
     markedAt: markedAt ?? this.markedAt,
     createdAt: createdAt ?? this.createdAt,
     markedDate: markedDate ?? this.markedDate,
@@ -2347,6 +2449,9 @@ class AttendanceRecord extends DataClass
       similarityScore: data.similarityScore.present
           ? data.similarityScore.value
           : this.similarityScore,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      zoneName: data.zoneName.present ? data.zoneName.value : this.zoneName,
       markedAt: data.markedAt.present ? data.markedAt.value : this.markedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       markedDate: data.markedDate.present
@@ -2364,6 +2469,9 @@ class AttendanceRecord extends DataClass
           ..write('status: $status, ')
           ..write('method: $method, ')
           ..write('similarityScore: $similarityScore, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('zoneName: $zoneName, ')
           ..write('markedAt: $markedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('markedDate: $markedDate')
@@ -2379,6 +2487,9 @@ class AttendanceRecord extends DataClass
     status,
     method,
     similarityScore,
+    latitude,
+    longitude,
+    zoneName,
     markedAt,
     createdAt,
     markedDate,
@@ -2393,6 +2504,9 @@ class AttendanceRecord extends DataClass
           other.status == this.status &&
           other.method == this.method &&
           other.similarityScore == this.similarityScore &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.zoneName == this.zoneName &&
           other.markedAt == this.markedAt &&
           other.createdAt == this.createdAt &&
           other.markedDate == this.markedDate);
@@ -2405,6 +2519,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
   final Value<String> status;
   final Value<String> method;
   final Value<double?> similarityScore;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
+  final Value<String?> zoneName;
   final Value<String> markedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> markedDate;
@@ -2415,6 +2532,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     this.status = const Value.absent(),
     this.method = const Value.absent(),
     this.similarityScore = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.zoneName = const Value.absent(),
     this.markedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.markedDate = const Value.absent(),
@@ -2426,6 +2546,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     this.status = const Value.absent(),
     this.method = const Value.absent(),
     this.similarityScore = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.zoneName = const Value.absent(),
     required String markedAt,
     this.createdAt = const Value.absent(),
     required DateTime markedDate,
@@ -2440,6 +2563,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     Expression<String>? status,
     Expression<String>? method,
     Expression<double>? similarityScore,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<String>? zoneName,
     Expression<String>? markedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? markedDate,
@@ -2451,6 +2577,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
       if (status != null) 'status': status,
       if (method != null) 'method': method,
       if (similarityScore != null) 'similarity_score': similarityScore,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (zoneName != null) 'zone_name': zoneName,
       if (markedAt != null) 'marked_at': markedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (markedDate != null) 'marked_date': markedDate,
@@ -2464,6 +2593,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     Value<String>? status,
     Value<String>? method,
     Value<double?>? similarityScore,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
+    Value<String?>? zoneName,
     Value<String>? markedAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? markedDate,
@@ -2475,6 +2607,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
       status: status ?? this.status,
       method: method ?? this.method,
       similarityScore: similarityScore ?? this.similarityScore,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      zoneName: zoneName ?? this.zoneName,
       markedAt: markedAt ?? this.markedAt,
       createdAt: createdAt ?? this.createdAt,
       markedDate: markedDate ?? this.markedDate,
@@ -2502,6 +2637,15 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
     if (similarityScore.present) {
       map['similarity_score'] = Variable<double>(similarityScore.value);
     }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (zoneName.present) {
+      map['zone_name'] = Variable<String>(zoneName.value);
+    }
     if (markedAt.present) {
       map['marked_at'] = Variable<String>(markedAt.value);
     }
@@ -2523,6 +2667,9 @@ class AttendanceRecordsCompanion extends UpdateCompanion<AttendanceRecord> {
           ..write('status: $status, ')
           ..write('method: $method, ')
           ..write('similarityScore: $similarityScore, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('zoneName: $zoneName, ')
           ..write('markedAt: $markedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('markedDate: $markedDate')
@@ -2993,6 +3140,463 @@ class FaceLogsCompanion extends UpdateCompanion<FaceLog> {
   }
 }
 
+class $GeoZonesTable extends GeoZones with TableInfo<$GeoZonesTable, GeoZone> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeoZonesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 100,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _radiusMetersMeta = const VerificationMeta(
+    'radiusMeters',
+  );
+  @override
+  late final GeneratedColumn<double> radiusMeters = GeneratedColumn<double>(
+    'radius_meters',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(100.0),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    latitude,
+    longitude,
+    radiusMeters,
+    isActive,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'geo_zones';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GeoZone> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('radius_meters')) {
+      context.handle(
+        _radiusMetersMeta,
+        radiusMeters.isAcceptableOrUnknown(
+          data['radius_meters']!,
+          _radiusMetersMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GeoZone map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GeoZone(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      radiusMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}radius_meters'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $GeoZonesTable createAlias(String alias) {
+    return $GeoZonesTable(attachedDatabase, alias);
+  }
+}
+
+class GeoZone extends DataClass implements Insertable<GeoZone> {
+  final int id;
+  final String name;
+  final double latitude;
+  final double longitude;
+  final double radiusMeters;
+  final bool isActive;
+  final DateTime createdAt;
+  const GeoZone({
+    required this.id,
+    required this.name,
+    required this.latitude,
+    required this.longitude,
+    required this.radiusMeters,
+    required this.isActive,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    map['radius_meters'] = Variable<double>(radiusMeters);
+    map['is_active'] = Variable<bool>(isActive);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  GeoZonesCompanion toCompanion(bool nullToAbsent) {
+    return GeoZonesCompanion(
+      id: Value(id),
+      name: Value(name),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      radiusMeters: Value(radiusMeters),
+      isActive: Value(isActive),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory GeoZone.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GeoZone(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      radiusMeters: serializer.fromJson<double>(json['radiusMeters']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'radiusMeters': serializer.toJson<double>(radiusMeters),
+      'isActive': serializer.toJson<bool>(isActive),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  GeoZone copyWith({
+    int? id,
+    String? name,
+    double? latitude,
+    double? longitude,
+    double? radiusMeters,
+    bool? isActive,
+    DateTime? createdAt,
+  }) => GeoZone(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    radiusMeters: radiusMeters ?? this.radiusMeters,
+    isActive: isActive ?? this.isActive,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  GeoZone copyWithCompanion(GeoZonesCompanion data) {
+    return GeoZone(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      radiusMeters: data.radiusMeters.present
+          ? data.radiusMeters.value
+          : this.radiusMeters,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoZone(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusMeters: $radiusMeters, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    latitude,
+    longitude,
+    radiusMeters,
+    isActive,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GeoZone &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.radiusMeters == this.radiusMeters &&
+          other.isActive == this.isActive &&
+          other.createdAt == this.createdAt);
+}
+
+class GeoZonesCompanion extends UpdateCompanion<GeoZone> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double> radiusMeters;
+  final Value<bool> isActive;
+  final Value<DateTime> createdAt;
+  const GeoZonesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.radiusMeters = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  GeoZonesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required double latitude,
+    required double longitude,
+    this.radiusMeters = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : name = Value(name),
+       latitude = Value(latitude),
+       longitude = Value(longitude);
+  static Insertable<GeoZone> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? radiusMeters,
+    Expression<bool>? isActive,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (radiusMeters != null) 'radius_meters': radiusMeters,
+      if (isActive != null) 'is_active': isActive,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  GeoZonesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<double>? radiusMeters,
+    Value<bool>? isActive,
+    Value<DateTime>? createdAt,
+  }) {
+    return GeoZonesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      radiusMeters: radiusMeters ?? this.radiusMeters,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (radiusMeters.present) {
+      map['radius_meters'] = Variable<double>(radiusMeters.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeoZonesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('radiusMeters: $radiusMeters, ')
+          ..write('isActive: $isActive, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3004,6 +3608,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AttendanceRecordsTable attendanceRecords =
       $AttendanceRecordsTable(this);
   late final $FaceLogsTable faceLogs = $FaceLogsTable(this);
+  late final $GeoZonesTable geoZones = $GeoZonesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3015,6 +3620,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     attendanceSessions,
     attendanceRecords,
     faceLogs,
+    geoZones,
   ];
 }
 
@@ -5159,6 +5765,9 @@ typedef $$AttendanceRecordsTableCreateCompanionBuilder =
       Value<String> status,
       Value<String> method,
       Value<double?> similarityScore,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<String?> zoneName,
       required String markedAt,
       Value<DateTime> createdAt,
       required DateTime markedDate,
@@ -5171,6 +5780,9 @@ typedef $$AttendanceRecordsTableUpdateCompanionBuilder =
       Value<String> status,
       Value<String> method,
       Value<double?> similarityScore,
+      Value<double?> latitude,
+      Value<double?> longitude,
+      Value<String?> zoneName,
       Value<String> markedAt,
       Value<DateTime> createdAt,
       Value<DateTime> markedDate,
@@ -5239,6 +5851,21 @@ class $$AttendanceRecordsTableFilterComposer
 
   ColumnFilters<double> get similarityScore => $composableBuilder(
     column: $table.similarityScore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get zoneName => $composableBuilder(
+    column: $table.zoneName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5315,6 +5942,21 @@ class $$AttendanceRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get zoneName => $composableBuilder(
+    column: $table.zoneName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get markedAt => $composableBuilder(
     column: $table.markedAt,
     builder: (column) => ColumnOrderings(column),
@@ -5379,6 +6021,15 @@ class $$AttendanceRecordsTableAnnotationComposer
     column: $table.similarityScore,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<String> get zoneName =>
+      $composableBuilder(column: $table.zoneName, builder: (column) => column);
 
   GeneratedColumn<String> get markedAt =>
       $composableBuilder(column: $table.markedAt, builder: (column) => column);
@@ -5454,6 +6105,9 @@ class $$AttendanceRecordsTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<String> method = const Value.absent(),
                 Value<double?> similarityScore = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<String?> zoneName = const Value.absent(),
                 Value<String> markedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> markedDate = const Value.absent(),
@@ -5464,6 +6118,9 @@ class $$AttendanceRecordsTableTableManager
                 status: status,
                 method: method,
                 similarityScore: similarityScore,
+                latitude: latitude,
+                longitude: longitude,
+                zoneName: zoneName,
                 markedAt: markedAt,
                 createdAt: createdAt,
                 markedDate: markedDate,
@@ -5476,6 +6133,9 @@ class $$AttendanceRecordsTableTableManager
                 Value<String> status = const Value.absent(),
                 Value<String> method = const Value.absent(),
                 Value<double?> similarityScore = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
+                Value<String?> zoneName = const Value.absent(),
                 required String markedAt,
                 Value<DateTime> createdAt = const Value.absent(),
                 required DateTime markedDate,
@@ -5486,6 +6146,9 @@ class $$AttendanceRecordsTableTableManager
                 status: status,
                 method: method,
                 similarityScore: similarityScore,
+                latitude: latitude,
+                longitude: longitude,
+                zoneName: zoneName,
                 markedAt: markedAt,
                 createdAt: createdAt,
                 markedDate: markedDate,
@@ -6000,6 +6663,234 @@ typedef $$FaceLogsTableProcessedTableManager =
       FaceLog,
       PrefetchHooks Function({bool userId, bool sessionId})
     >;
+typedef $$GeoZonesTableCreateCompanionBuilder =
+    GeoZonesCompanion Function({
+      Value<int> id,
+      required String name,
+      required double latitude,
+      required double longitude,
+      Value<double> radiusMeters,
+      Value<bool> isActive,
+      Value<DateTime> createdAt,
+    });
+typedef $$GeoZonesTableUpdateCompanionBuilder =
+    GeoZonesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<double> radiusMeters,
+      Value<bool> isActive,
+      Value<DateTime> createdAt,
+    });
+
+class $$GeoZonesTableFilterComposer
+    extends Composer<_$AppDatabase, $GeoZonesTable> {
+  $$GeoZonesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get radiusMeters => $composableBuilder(
+    column: $table.radiusMeters,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GeoZonesTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeoZonesTable> {
+  $$GeoZonesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get radiusMeters => $composableBuilder(
+    column: $table.radiusMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GeoZonesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeoZonesTable> {
+  $$GeoZonesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get radiusMeters => $composableBuilder(
+    column: $table.radiusMeters,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$GeoZonesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GeoZonesTable,
+          GeoZone,
+          $$GeoZonesTableFilterComposer,
+          $$GeoZonesTableOrderingComposer,
+          $$GeoZonesTableAnnotationComposer,
+          $$GeoZonesTableCreateCompanionBuilder,
+          $$GeoZonesTableUpdateCompanionBuilder,
+          (GeoZone, BaseReferences<_$AppDatabase, $GeoZonesTable, GeoZone>),
+          GeoZone,
+          PrefetchHooks Function()
+        > {
+  $$GeoZonesTableTableManager(_$AppDatabase db, $GeoZonesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeoZonesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeoZonesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeoZonesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<double> radiusMeters = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => GeoZonesCompanion(
+                id: id,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusMeters: radiusMeters,
+                isActive: isActive,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required double latitude,
+                required double longitude,
+                Value<double> radiusMeters = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => GeoZonesCompanion.insert(
+                id: id,
+                name: name,
+                latitude: latitude,
+                longitude: longitude,
+                radiusMeters: radiusMeters,
+                isActive: isActive,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GeoZonesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GeoZonesTable,
+      GeoZone,
+      $$GeoZonesTableFilterComposer,
+      $$GeoZonesTableOrderingComposer,
+      $$GeoZonesTableAnnotationComposer,
+      $$GeoZonesTableCreateCompanionBuilder,
+      $$GeoZonesTableUpdateCompanionBuilder,
+      (GeoZone, BaseReferences<_$AppDatabase, $GeoZonesTable, GeoZone>),
+      GeoZone,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6016,4 +6907,6 @@ class $AppDatabaseManager {
       $$AttendanceRecordsTableTableManager(_db, _db.attendanceRecords);
   $$FaceLogsTableTableManager get faceLogs =>
       $$FaceLogsTableTableManager(_db, _db.faceLogs);
+  $$GeoZonesTableTableManager get geoZones =>
+      $$GeoZonesTableTableManager(_db, _db.geoZones);
 }

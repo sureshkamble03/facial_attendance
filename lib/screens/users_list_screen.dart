@@ -8,6 +8,7 @@ import '../bloc/users_event.dart';
 import '../bloc/users_state.dart';
 import '../local_database/app_database.dart';
 import '../main.dart';
+import 'admin_zones_screen.dart';
 import 'attendance_log.dart';
 import 'embeding_test_screen_from_url.dart';
 import 'group_photo_attendance.dart';
@@ -281,6 +282,14 @@ class _UsersListState extends State<UsersList> {
                         builder: (_) =>
                             EmbeddingTestScreen(db: getIt<AppDatabase>())));
                 break;
+              case 'zones':
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AdminZonesScreen(),
+                  ),
+                );
+                break;
               case 'refresh':
                 _refreshAttendanceList();
                 break;
@@ -295,6 +304,9 @@ class _UsersListState extends State<UsersList> {
                 child: _MenuRow(Icons.science_rounded, 'Embedding Test')),
             PopupMenuItem(value: 'group',
                 child: _MenuRow(Icons.photo_library_rounded, 'Photo Attendance')),
+            PopupMenuItem(value: 'zones',
+              child: _MenuRow(Icons.location_on_rounded, 'Manage Zones'),
+            ),
             PopupMenuDivider(),
             PopupMenuItem(value: 'refresh',
                 child: _MenuRow(Icons.refresh_rounded, 'Refresh')),

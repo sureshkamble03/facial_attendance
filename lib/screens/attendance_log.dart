@@ -311,7 +311,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -324,7 +324,7 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                 size: 32,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,7 +362,18 @@ class _AttendanceLogsScreenState extends State<AttendanceLogsScreen> {
                     user.email ?? user.rollNumber ?? '',
                     style: const TextStyle(color: Colors.grey),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.pin_drop, size: 16, color: Colors.grey.shade600),
+                      const SizedBox(width: 6),
+                      Text(
+                        record.zoneName??'NA',
+                        style: TextStyle(fontWeight: FontWeight.w500,color: Colors.grey.shade600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Icon(Icons.access_time, size: 16, color: Colors.grey.shade600),

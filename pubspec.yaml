@@ -52,7 +52,8 @@ dependencies:
   encrypt: ^5.0.3  # For AES-256 encryption
   image_picker: ^1.1.0
   flutter_secure_storage: ^9.2.4
-  crypto: ^3.0.3
+  geolocator: ^11.0.0
+  permission_handler: ^11.0.0
 #  face_recognition_kit:
 
 
@@ -86,8 +87,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/model/mobilefacenet.tflite
-    - assets/model/mobilefacenett.tflite
-    - assets/model/arcface.tflite
 
   # To add assets to your application, add an assets section, like this:
   # assets:

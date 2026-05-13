@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../core/embedding_service.dart';
 import '../core/face_service.dart';
+import '../core/geo_fence_service.dart';
 import 'drift_tables/drift_tables.dart';
 
 part 'app_database.g.dart';
@@ -53,12 +54,25 @@ class FaceScanAttendanceResult {
   AttendanceSessions,
   AttendanceRecords,
   FaceLogs,
+  GeoZones
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2; // bump from 1 → 2
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(attendanceRecords, attendanceRecords.latitude);
+        await migrator.addColumn(attendanceRecords, attendanceRecords.longitude);
+        await migrator.addColumn(attendanceRecords, attendanceRecords.zoneName);
+        await migrator.createTable(geoZones);
+      }
+    },
+  );
 
   // ── Users ─────────────────────────────────────────────────────────────────
 
@@ -185,6 +199,10 @@ class AppDatabase extends _$AppDatabase {
     required FaceEmbeddingService embeddingService,
     required FaceService faceService,
     double threshold = 0.75,
+    // ── Geo-tagging (optional — only present when location gate passed) ──────
+    double? geoLatitude,
+    double? geoLongitude,
+    String? zoneName,
   }) async {
     try {
       debugPrint('🔄 Starting face scan attendance...');
@@ -267,6 +285,10 @@ class AppDatabase extends _$AppDatabase {
           method: const Value('face'),
           status: const Value('present'),
           similarityScore: Value(similarity),
+          // ── Geo columns ────────────────────────────────────────────────────
+          latitude:  Value(geoLatitude),
+          longitude: Value(geoLongitude),
+          zoneName:  Value(zoneName),
         ),
       );
 
@@ -467,6 +489,10 @@ class AppDatabase extends _$AppDatabase {
     required FaceEmbeddingService embeddingService,
     required FaceService faceService,
     double threshold = 0.75,
+    // ── Geo-tagging (optional — shared across all faces in the group photo) ─
+    double? geoLatitude,
+    double? geoLongitude,
+    String? zoneName,
   }) async {
     final results = <FaceScanAttendanceResult>[];
 
@@ -560,6 +586,10 @@ class AppDatabase extends _$AppDatabase {
               method: const Value('face_group'),
               status: const Value('present'),
               similarityScore: Value(similarity),
+              // ── Geo columns ──────────────────────────────────────────────
+              latitude:  Value(geoLatitude),
+              longitude: Value(geoLongitude),
+              zoneName:  Value(zoneName),
             ),
           );
 
@@ -870,6 +900,58 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<FaceLog>> getFaceLogsByUser(int userId) =>
       (select(faceLogs)..where((l) => l.userId.equals(userId))).get();
+
+  Future<List<GeoZone>> getAllActiveZones() async {
+    final rows = await (select(geoZones)
+      ..where((z) => z.isActive.equals(true)))
+        .get();
+    return rows.map<GeoZone>(_toModel).toList();
+  }
+
+  Future<List<GeoZone>> getAllZones() async {
+    final rows = await select(geoZones).get();
+    return rows.map<GeoZone>(_toModel).toList();
+  }
+
+// ── Write ──────────────────────────────────────────────────────────────────
+
+  Future<int> insertZone(GeoZonesCompanion zone) =>
+      into(geoZones).insert(zone);
+
+  /// Alias used by screens expecting [getActiveZones]
+  Future<List<GeoZone>> getActiveZones() => getAllActiveZones();
+
+  /// Alias used by screens expecting [toggleZone]
+  Future<void> toggleZone(int id, bool active) => toggleZoneActive(id, active);
+
+  Future<bool> updateZone(GeoZone zone) =>
+      update(geoZones).replace(GeoZonesCompanion(
+        id: Value(zone.id),
+        name: Value(zone.name),
+        latitude: Value(zone.latitude),
+        longitude: Value(zone.longitude),
+        radiusMeters: Value(zone.radiusMeters),
+        isActive: const Value(true),
+      ));
+
+  Future<int> deleteZone(int id) =>
+      (delete(geoZones)..where((z) => z.id.equals(id))).go();
+
+  Future<void> toggleZoneActive(int id, bool active) =>
+      (update(geoZones)..where((z) => z.id.equals(id)))
+          .write(GeoZonesCompanion(isActive: Value(active)));
+
+// ── Mapper ─────────────────────────────────────────────────────────────────
+
+  GeoZone _toModel(GeoZone row) => GeoZone(
+    id: row.id,
+    name: row.name,
+    latitude: row.latitude,
+    longitude: row.longitude,
+    radiusMeters: row.radiusMeters,
+    isActive: true,
+    createdAt: DateTime.now(),
+  );
 }
 
 // ── DB connection ─────────────────────────────────────────────────────────────
